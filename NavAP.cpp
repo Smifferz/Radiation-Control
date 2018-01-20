@@ -11,6 +11,7 @@
 #include "NavAP.h"
 #include "RayBox.h"
 #include "types.h"
+#include "opcodes.h"
 #include "UDPserver.h"
 #include <math.h>
 #include <cmath>
@@ -42,44 +43,12 @@ NavAP::NavAP()
   // merely tell the simulator what to do with the handle to
   // give it data that it can use
   activeIndex = 0;
-  serverConnect = new UDPserver();
-  // Make the request for the vessel handle
-
-  // Initialise the vessel
-  init(hVessel);
+  serverConnect = new UDPserver("10.0.2.15");
 }
 
 // Initialise the variables of the vessels
 // present in the simulation
-// TODO: Probably not needed anymore as the
-// vessel handle version is more consistent
-// The reqeust for the OBJHANDLE of the vessel can
-// be made over TCP and sent to the server
-void NavAP::init(int vesselIndex)
-{
-  simTimeOld = 0;
-  horz_speed_old = 0;
-  vert_speed_old = 0;
-  dSimTime = 0;
-  distOld = 0;
-  headingOld = 0;
-  vert_speed_last_zycl = 0;
-  g_Dest[vesselIndex].isActive = false;
-  g_Dest[vesselIndex].isSet = false;
-  g_Dest[vesselIndex].hObject = NULL;
-
-  OBJHANDLE hVessel = oapiGetVesselByIndex(vesselIndex);
-  activeIndex = vesselIndex;
-  if (hVessel != NULL)
-    {
-      VESSEL *vessel = oapiGetVesselInterface(hVessel);
-      for (unsigned int i = 0; i < vessel->GetThrusterCount(); i++)
-        vessel->SetThrusterLevel(vessel->GetThrusterHandleByIndex(i), 0);
-    }
-}
-// Initialise the variables of the vessels
-// present in the simulation
-void NavAP::init(OBJHANDLE hVessel)
+void NavAP::init()
 {
   simTimeOld = 0;
   horz_speed_old = 0;
@@ -91,31 +60,16 @@ void NavAP::init(OBJHANDLE hVessel)
   // When initilising a new vessel, add one to the index
   g_Dest[activeIndex].isActive = false;
   g_Dest[activeIndex].isSet = false;
-  g_Dest[activeIndex].hObject = NULL;
   activeIndex++;
-
-  //  objhandle hvessel = oapigetvesselbyindex(vesselindex);
-  //activeindex = vesselindex;
-  if (hVessel != NULL)
-    {
-      VESSEL *vessel = oapiGetVesselInterface(hVessel);
-      for (unsigned int i = 0; i < vessel->GetThrusterCount(); i++)
-        vessel->SetThrusterLevel(vessel->GetThrusterHandleByIndex(i), 0);
-    }
-  //output_redirect = std::thread(&NavAP::NavAPMain, std::ref(hVessel));
 }
 
 // Main loop for the automated navigation system
-void NavAP::NavAPMain(OBJHANDLE vesselHandle)
+void NavAP::NavAPMain()
 {
   // set the destination for the vessel
   //vector3 navdest = setnavdestination();
-  OutputHandler();
   VECTOR3 destinationPos;
 
-  // For testing, get find the coordinates of jupiter and use as destination
-  OBJHANDLE destObject = oapiGetObjectByName("JUPITER");
-  oapiGetGlobalPos(destObject, &destinationPos);
 
   dest.x = destinationPos.x;
   dest.y = destinationPos.y;
@@ -123,7 +77,11 @@ void NavAP::NavAPMain(OBJHANDLE vesselHandle)
 
   //objhandle vesselhandle = oapigetvesselbyindex(vesselindex);
   // get the initial position of the vessel
-  oapiGetGlobalPos(vesselHandle, &currentPos);
+  //oapiGetGlobalPos(vesselHandle, &currentPos);
+  //TODO: Make a request for the global position of the vessel
+  serverConnect.performTransfer(GET_POS, 0, &currentPos);
+
+
   // create a 3d-vector for the near objects
   VECTOR3 nearObjPos;
   // while the vessel isn't at the destination

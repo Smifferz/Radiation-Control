@@ -1,5 +1,6 @@
 #include "UDPserver.h"
 #include "RayBox.h"
+#include "types.h"
 
 int main(int argc, char *argv[])
 {
@@ -15,7 +16,8 @@ int main(int argc, char *argv[])
     // Attempt to perform transfer
     std::string s = std::to_string(data);
     const char *pchar = s.c_str();
-    server->perform_transfer(pchar, debug);
+    VECTOR3 result;
+    server->perform_transfer(pchar, debug, result);
     printf("Data is %d\n", data);
     data++;
   }

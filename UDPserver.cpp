@@ -57,7 +57,7 @@ void UDPserver::spawn_data_process(const char *data)
 // There is a seperate instance of this function
 // for every connection made. It handles the communication
 // once a connection has been established.
-void UDPserver::perform_transfer(const char *data, int debug)
+void UDPserver::perform_transfer(const char *data, int debug, VECTOR3 result)
 {
   int n;
   cli_len = sizeof(cli_addr);
@@ -67,7 +67,6 @@ void UDPserver::perform_transfer(const char *data, int debug)
   memset(&buffer, 0, sizeof(buffer));
   // If the size of the data is greater than zero,
   // copy into the buffer
-  //  const char* char_data = data.c_str()
    if (sizeof(data))
      strcpy(buffer, data);
   // Request the data transaction from the client
@@ -75,14 +74,18 @@ void UDPserver::perform_transfer(const char *data, int debug)
   if (debug) {
     printf("Socket = %d\n", sockfd);
     printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
-
   }
-  n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&server, sizeof(server));
+  n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, sizeof(cli_len));
   if (n < 0) error("ERROR writing to socket");
-  // zero the buffer again
-  bzero(buffer, BUFLEN);
-  // Read the contents of the message into the buffer
-  n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
-  if (n < 0) error("ERROR reading from socket");
-  printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+  // Expect three responses from the client
+  for (int i = 0; i < 3; i++) {
+    // zero the buffer again
+    bzero(buffer, BUFLEN);
+    // Read the contents of the message into the buffer
+    n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+    if (n < 0) error("ERROR reading from socket");
+    printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+    // Store the data into the result vector using the array data interface
+    result.data[i] = atof(buffer);
+  }
 }

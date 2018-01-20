@@ -1,4 +1,4 @@
-
+#pragma once
 
 typedef union {
 	double data[3];               ///< array data interface

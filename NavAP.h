@@ -10,17 +10,16 @@
 #include "Orbitersdk.h"
 #include "OutputHandler.h"
 #include "UDPclient.h"
+#include "types.h"
 #include <thread>
 
 class NavAP
 {
 public:
 	NavAP();
-	NavAP(OBJHANDLE hVessel);
-	void init(int vesselIndex);
-	void init(OBJHANDLE hVessel);
+	void init();
 	VECTOR3 setNavDestination();
-	void NavAPMain(OBJHANDLE hVessel);
+	void NavAPMain();
 	void getActiveIndex(int vesselIndex);
     bool isCollision;
 	double currentThrust;
