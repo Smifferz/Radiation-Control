@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
     std::string s = std::to_string(data);
     const char *pchar = s.c_str();
     VECTOR3 result;
-    server->perform_transfer(pchar, debug, result);
+    server->perform_transfer(data, 0, debug, result);
     printf("Data is %d\n", data);
     data++;
   }

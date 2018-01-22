@@ -16,6 +16,8 @@
 #include <math.h>
 #include <cmath>
 
+#define PI 3.1415
+
 struct Dest
 {
   bool isSet;
@@ -79,7 +81,7 @@ void NavAP::NavAPMain()
   // get the initial position of the vessel
   //oapiGetGlobalPos(vesselHandle, &currentPos);
   //TODO: Make a request for the global position of the vessel
-  serverConnect.performTransfer(GET_POS, 0, &currentPos);
+  serverConnect->perform_transfer(GET_POS, 0, 0, currentPos);
 
 
   // create a 3d-vector for the near objects
@@ -90,19 +92,22 @@ void NavAP::NavAPMain()
          (currentPos.z < dest.z + 5) && (currentPos.z > dest.z - 5))
     {
       // count the objects currently in the rendered simulation area
-      for (int i = 0; i < oapiGetObjectCount(); i++)
+      // TODO: Get the number of objects in the rendered environment
+      // and iterate through them
+      double num_obj;
+      serverConnect->perform_transfer(GET_OBJ_COUNT, 0, 0, num_obj);
+      for (int i = 0; i < num_obj; i++)
         {
-          // find the handle for the nearby object
-          OBJHANDLE simObj = oapiGetObjectByIndex(i);
+          // TODO: Request for the host to determine if the current
+          // object is the same as the vessel
+          double is_sim;
+          serverConnect->perform_transfer(GET_OBJ, i, 0, is_sim);
 
-          // Check if the nearby object is the vessel
-          if (simObj == vesselHandle)
-            {
-              continue;	// Skip this iteration
-            }
+          if (is_sim == (double)1) continue;
 
+          // TODO: Request global position of near object
           // Find the global position of the vessel and possible collision object
-          oapiGetGlobalPos(simObj, &nearObjPos);
+          serverConnect->perform_transfer(GET_POS, i, 0, nearObjPos);
 
           // Find the direction vector by subtracting the previous vector position
           // from the new vector position
@@ -113,8 +118,9 @@ void NavAP::NavAPMain()
           // Create a RayBox object to determine if a collision is likely
           // This will set up a bounding box around the near object so
           // detections can be calculated.
-
-          RayBox *collisionCheck = new RayBox(nearObjPos, oapiGetSize(simObj));
+          double objSize;
+          serverConnect->perform_transfer(GET_SIZE, i, 0, objSize);
+          RayBox *collisionCheck = new RayBox(nearObjPos, objSize);
 
           // Generate a Ray using the global position and the direction vector for the vessel
           collisionCheck->vessel_ray.origin = currentPos;
@@ -182,8 +188,10 @@ void NavAP::NavAPMain()
                 case 0:
                   // Largest in the x axis, move along horizontal axis
                   // Will require change in bank and roll
-                  currentBank = vesselAuto->GetBank();
-                  currentYaw = vesselAuto->GetYaw();
+                  serverConnect->perform_transfer(GET_BANK, 0, 0, currentBank);
+                  serverConnect->perform_transfer(GET_YAW, 0, 0, currentYaw);
+                  //currentBank = vesselAuto->GetBank();
+                  //currentYaw = vesselAuto->GetYaw();
                   bankset = currentBank / 2;
                   yawset = currentYaw / 2;
                   if (bankset > 0.1) bankset = 0.1;
@@ -194,8 +202,10 @@ void NavAP::NavAPMain()
                 case 1:
                   // Largest in the y axis, move along vertical axis
                   // Requires change in pitch and maybe roll
-                  currentPitch = vesselAuto->GetPitch();
-                  currentYaw = vesselAuto->GetYaw();
+                  serverConnect->perform_transfer(GET_PITCH, 0, 0, currentPitch);
+                  serverConnect->perform_transfer(GET_YAW, 0, 0, currentYaw);
+                  //currentPitch = vesselAuto->GetPitch();
+                  //currentYaw = vesselAuto->GetYaw();
                   pitchset = currentPitch / 2;
                   yawset = currentYaw / 2;
                   // If the set values are larger than the max, set to max
@@ -218,18 +228,18 @@ void NavAP::NavAPMain()
               while (pathCollision)
                 {
                   // Get the latest position of the vessel
-                  VECTOR3* newPosition;
-                  oapiGetGlobalPos(vesselHandle, newPosition);
+                  VECTOR3 newPosition;
+                  serverConnect->perform_transfer(GET_POS, 0, 0, newPosition);
                   // Find direction vectors of new position
-                  double newXDirection = newPosition->x - currentPos.x;
-                  double newYDirection = newPosition->y - currentPos.y;
-                  double newZDirection = newPosition->z - currentPos.z;
+                  double newXDirection = newPosition.x - currentPos.x;
+                  double newYDirection = newPosition.y - currentPos.y;
+                  double newZDirection = newPosition.z - currentPos.z;
 
                   // Use new vectors to check collision again
-                  RayBox *newCheck = new RayBox(nearObjPos, oapiGetSize(simObj));
+                  RayBox *newCheck = new RayBox(nearObjPos, objSize);
 
                   // Set the properties of the collision ray
-                  newCheck->vessel_ray.origin = *newPosition;
+                  newCheck->vessel_ray.origin = newPosition;
                   newCheck->vessel_ray.direction.x = newXDirection;
                   newCheck->vessel_ray.direction.y = newYDirection;
                   newCheck->vessel_ray.direction.z = newZDirection;
@@ -316,8 +326,7 @@ VECTOR3 NavAP::setNavDestination()
 double NavAP::getAirspeedAngle()
 {
   VECTOR3 speedVector;
-  VESSEL *v = _VESSEL;
-  oapiGetAirspeedVector(_HVESSEL, &speedVector);
+  serverConnect->perform_transfer(GET_AIRSPEED, 0, 0, speedVector);
   double angle;
   angle = atan(speedVector.x / speedVector.z);
   double x = speedVector.x;
@@ -344,21 +353,21 @@ double NavAP::getAirspeedAngle()
 //	return diffHeading;
 //}
 
+
 // Set the bank speed using the angular velocity of the vessel
 // to set the thrusters in a given direction
 void NavAP::setBankSpeed(double value)
 {
   VECTOR3 currentRotVel;
-  vesselAuto->GetAngularVel(currentRotVel);
+  serverConnect->perform_transfer(GET_ANG_VEL, 0, 0, currentRotVel);
   double deltaVel = value - currentRotVel.z;
   double thrust = getRCSThrustByDelta(deltaVel);
   // Reset the RCS thrusters to 0 so a bank maneouver
-  // is only attempted in a single direction
-  vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_BANKRIGHT, 0);
-  vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_BANKLEFT, 0);
-  // Set the thrust in a given direction based on the value of the delta velocity
-  if (deltaVel > 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_BANKRIGHT, thrust);
-  if (deltaVel < 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_BANKLEFT, -thrust);
+  // is only attempted in a single direction, then set
+  // the thrust in a gtiven direction based of the delta velocity
+  serverConnect->perform_transfer(SET_BANK, deltaVel, 0);
+  // TODO: This might not be needed if the RCS is performed on host
+  serverConnect->perform_transfer(SET_BANK, thrust, 0);
 }
 
 // Set the pitch speed using the angular velocity of the vessel
@@ -366,16 +375,12 @@ void NavAP::setBankSpeed(double value)
 void NavAP::setPitchSpeed(double value)
 {
   VECTOR3 currentRotVel;
-  vesselAuto->GetAngularVel(currentRotVel);
+  serverConnect->perform_transfer(GET_ANG_VEL, 0, 0, currentRotVel);
   double deltaVel = value - currentRotVel.x;
   double thrust = getRCSThrustByDelta(deltaVel);
   // Reset the RCS thrusters to 0 so a pitch maneouver
   // is only attempted in a single direction
-  vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_PITCHUP, 0);
-  vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_PITCHDOWN, 0);
-  // Set the thrust in a given direction based on the value of the delta velocity
-  if (deltaVel > 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_PITCHUP, thrust);
-  if (deltaVel < 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_PITCHDOWN, -thrust);
+  serverConnect->perform_transfer(SET_PITCH, deltaVel, 0);
 }
 
 // Set the yaw speed using the angular velocity of the vessel
@@ -383,18 +388,22 @@ void NavAP::setPitchSpeed(double value)
 void NavAP::setYawSpeed(double value)
 {
   VECTOR3 currentRotVel;
-  vesselAuto->GetAngularVel(currentRotVel);
+  //vesselAuto->GetAngularVel(currentRotVel);
+  serverConnect->perform_transfer(GET_ANG_VEL, 0, 0, currentRotVel);
   double deltaVel = value - (-currentRotVel.y);
   double thrust = getRCSThrustByDelta(deltaVel);
   // Reset the RCS thrusters to 0 so a yaw maneouver
   // is only attempted in a single direction
-  vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWRIGHT, 0);
-  vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWLEFT, 0);
+  serverConnect->perform_transfer(SET_YAW, deltaVel, 0);
+  //vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWRIGHT, 0);
+  //vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWLEFT, 0);
   // Set the thrust in a given direction based on the value of the delta velocity
-  if (deltaVel > 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWRIGHT, thrust);
-  if (deltaVel < 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWLEFT, -thrust);
+  //if (deltaVel > 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWRIGHT, thrust);
+  //if (deltaVel < 0) vesselAuto->SetThrusterGroupLevel(THGROUP_ATT_YAWLEFT, -thrust);
 }
 
+//TODO: Perhaps this could go on the host rather than sending a
+// second response from the server
 // Get the RCS thruster level based on the deltaspeed
 double NavAP::getRCSThrustByDelta(double deltaSpeed)
 {
@@ -413,7 +422,9 @@ double NavAP::setPitch(double pitch)
 {
   if (pitch > 1.5) pitch = 1.5;
   if (pitch < -1.5) pitch = -1.5;
-  double currentPitch = vesselAuto->GetPitch();
+  double currentPitch;
+  serverConnect->perform_transfer(GET_PITCH, 0, 0, currentPitch);
+  //double currentPitch = vesselAuto->GetPitch();
   double deltaPitch = currentPitch - pitch;
   double pitchSpeed = deltaPitch * 0.1;
   if (pitchSpeed > 0.04) pitchSpeed = 0.04;
@@ -432,7 +443,9 @@ double NavAP::setRoll(double roll)
   // to a function request
   // (These could be stored in a seperate file on
   // the host system)
-  double currentBank = vesselAuto->GetBank();
+  double currentBank;
+  serverConnect->perform_transfer(GET_BANK, 0, 0, currentBank);
+  //double currentBank = vesselAuto->GetBank();
   double deltaBank = currentBank - roll;
   double bankSpeed = deltaBank * 0.1;
   if (bankSpeed > 0.04) bankSpeed = 0.04;
@@ -454,11 +467,17 @@ double NavAP::setDir(double dir)
 void NavAP::getDir(VECTOR3 dir)
 {
   VECTOR3 vesselPos;
-  oapiGetGlobalPos(_HVESSEL, &vesselPos);
+  serverConnect->perform_transfer(GET_POS, 0, 0, vesselPos);
   VECTOR3 targetPos = dest;
-  VECTOR3 heading = targetPos - vesselPos;
+  VECTOR3 heading;
+  for (int i = 0; i < 3; i++) {
+    heading.data[i] = targetPos.data[i] - vesselPos.data[i];
+  }
   double distance = getDistance(heading);
-  VECTOR3 direction = heading / distance;
+  VECTOR3 direction;
+  for (int i = 0; i < 3; i++) {
+    direction.data[i] = heading.data[i] / distance;
+  }
   dir = direction;
 }
 

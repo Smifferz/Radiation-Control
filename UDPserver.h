@@ -36,7 +36,9 @@ public:
   UDPserver(std::string server_addr);
   ~UDPserver() { close(sockfd); close(newsocket); }
   void spawn_data_process(const char *data);
-  void perform_transfer(const char *data, int debug, VECTOR3 result);
+  void perform_transfer(int data, int info, int debug);
+  void perform_transfer(int data, int info, int debug, VECTOR3 result);
+  void perform_transfer(int data, int info, int debug, double result);
 private:
   void error(const char *msg) { perror(msg); exit(EXIT_FAILURE); }
   //void perform_transfer(const char *data);
