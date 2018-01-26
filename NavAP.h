@@ -14,7 +14,7 @@
 class NavAP
 {
 public:
-  NavAP();
+  NavAP(int debug);
   void init();
   VECTOR3 setNavDestination();
   void NavAPMain();
@@ -22,6 +22,7 @@ public:
   bool isCollision;
   double currentThrust;
   double progressThrust;
+  bool check_ping();
 private:
   void setBankSpeed(double value);
   void setPitchSpeed(double value);
@@ -50,8 +51,5 @@ private:
   VECTOR3 dest;
   VECTOR3 currentPos;
   VECTOR3 oldPos;
-  void ThreadHandler();
-  bool isThreadOpen = false;
-  std::thread output_redirect;
   UDPserver *serverConnect;
 };

@@ -23,7 +23,7 @@
 
 //#pragma comment(lib,"ws2_32.lib") // Winsock library
 
-#define BUFLEN 512 // Max length of buffer
+#define BUFLEN 50000 // Max length of buffer
 #define PORT 8888 // The port on which to listen to incoming data
 
 // The server will change depending on the system,
@@ -33,13 +33,15 @@
 class UDPserver
 {
 public:
-  UDPserver(std::string server_addr);
+  UDPserver(std::string server_addr, int debug_tmp);
   ~UDPserver() { close(sockfd); close(newsocket); }
   void spawn_data_process(const char *data);
-  void perform_transfer(int data, int info, int debug);
-  void perform_transfer(int data, int info, int debug, VECTOR3 result);
-  void perform_transfer(int data, int info, int debug, double result);
+  bool check_ping();
+  void perform_transfer(int data, double info);
+  void perform_transfer(int data, int info, VECTOR3 *result);
+  void perform_transfer(int data, int info, double *result);
 private:
+  int debug;
   void error(const char *msg) { perror(msg); exit(EXIT_FAILURE); }
   //void perform_transfer(const char *data);
   int port, sockfd, newsocket, serverlen, pid;
