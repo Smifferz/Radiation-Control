@@ -20,11 +20,12 @@ int main(int argc, char *argv[])
     //printf("Data is %d\n", data);
     //data++;
     // Attempt to make a connection with the client
-    if (nav->check_ping())
-      while(1) {
+    if (nav->check_ping()) {
+        while(1) {
         nav->NavAPMain();
         sleep(1);
-      }
+        }
+    }
   }
   delete nav;
   return 0;

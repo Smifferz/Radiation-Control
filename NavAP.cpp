@@ -13,6 +13,9 @@
 #include "types.h"
 #include "opcodes.h"
 #include "UDPserver.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
 #include <math.h>
 #include <cmath>
 #include <iostream>
@@ -40,11 +43,6 @@ Dest g_Dest[256] = {};
 
 NavAP::NavAP(int debug)
 {
-  //TODO: Make a request for the handle of the vessel to undergo
-  // navigation processing
-  // --UPDATE: Handle won't be sent over network, NavAP will
-  // merely tell the simulator what to do with the handle to
-  // give it data that it can use 20/01/2018
   activeIndex = 0;
   serverConnect = new UDPserver("192.168.56.102", debug);
   init();
@@ -82,14 +80,19 @@ void NavAP::NavAPMain()
   // set the destination for the vessel
   VECTOR3 destinationPos;
 
-  serverConnect->perform_transfer(GET_POS, 60, &destinationPos);
+  std::string operation = "GET_POS";
+  std::string detail = "60";
+  serverConnect->test(operation, detail, &destinationPos);
+  //serverConnect->perform_transfer(GET_POS, 60, &destinationPos);
   std::cout << "The destination is x = " << destinationPos.data[0] << " y = " << destinationPos.data[1] << " z = " << destinationPos.data[2] << std::endl;
 
   dest.x = destinationPos.x;
   dest.y = destinationPos.y;
   dest.z = destinationPos.z;
 
-  serverConnect->perform_transfer(GET_POS, 0, &currentPos);
+  detail = "0";
+  serverConnect->test(operation, detail, &currentPos);
+  //serverConnect->perform_transfer(GET_POS, 0, &currentPos);
   std::cout << "The position is x = " << currentPos.data[0] << " y = " << currentPos.data[1] << " z = " << currentPos.data[2] << std::endl;
 
   // create a 3d-vector for the near objects
@@ -101,17 +104,24 @@ void NavAP::NavAPMain()
     {
       // count the objects currently in the rendered simulation area
       double num_obj = 0;
-      serverConnect->perform_transfer(GET_OBJ_COUNT, 0, &num_obj);
+      operation = "GET_OBJ_COUNT";
+      serverConnect->test(operation, detail, &num_obj);
+      //serverConnect->perform_transfer(GET_OBJ_COUNT, 0, &num_obj);
       std::cout << "The number of objects is " << num_obj << std::endl;
       for (int i = 0; i < num_obj; i++)
       {
         double is_sim = 0;
-        serverConnect->perform_transfer(IS_VESSEL, i, &is_sim);
+        operation = "IS_VESSEL";
+        detail = std::to_string(i);
+        serverConnect->test(operation, detail, &is_sim);
+        //serverConnect->perform_transfer(IS_VESSEL, i, &is_sim);
 
         if (is_sim == 1.) return;
 
         // Find the global position of the vessel and possible collision object
-        serverConnect->perform_transfer(GET_POS, i, &nearObjPos);
+        operation = "GET_POS";
+        serverConnect->test(operation, detail, &nearObjPos);
+        //serverConnect->perform_transfer(GET_POS, i, &nearObjPos);
 
         // Find the direction vector by subtracting the previous vector position
         // from the new vector position
@@ -123,7 +133,9 @@ void NavAP::NavAPMain()
         // This will set up a bounding box around the near object so
         // detections can be calculated.
         double objSize = 0;
-        serverConnect->perform_transfer(GET_SIZE, i, &objSize);
+        operation = "GET_SIZE";
+        serverConnect->test(operation, detail, &objSize);
+        //serverConnect->perform_transfer(GET_SIZE, i, &objSize);
         RayBox *collisionCheck = new RayBox(nearObjPos, objSize);
 
         // Generate a Ray using the global position and the direction vector for the vessel
@@ -192,8 +204,13 @@ void NavAP::NavAPMain()
             case 0:
               // Largest in the x axis, move along horizontal axis
               // Will require change in bank and roll
-              serverConnect->perform_transfer(GET_BANK, 0, &currentBank);
-              serverConnect->perform_transfer(GET_YAW, 0, &currentYaw);
+              operation = "GET_BANK";
+              detail = "0";
+              serverConnect->test(operation, detail, &currentBank);
+              operation = "GET_YAW";
+              serverConnect->test(operation, detail, &currentYaw);
+              //serverConnect->perform_transfer(GET_BANK, 0, &currentBank);
+              //serverConnect->perform_transfer(GET_YAW, 0, &currentYaw);
               //currentBank = vesselAuto->GetBank();
               //currentYaw = vesselAuto->GetYaw();
               bankset = currentBank / 2;
@@ -207,8 +224,12 @@ void NavAP::NavAPMain()
             case 1:
               // Largest in the y axis, move along vertical axis
               // Requires change in pitch and maybe roll
-              serverConnect->perform_transfer(GET_PITCH, 0, &currentPitch);
-              serverConnect->perform_transfer(GET_YAW, 0, &currentYaw);
+              operation = "GET_PITCH";
+              serverConnect->test(operation, detail, &currentPitch);
+              operation = "GET_YAW";
+              serverConnect->test(operation, detail, &currentYaw);
+              //              serverConnect->perform_transfer(GET_PITCH, 0, &currentPitch);
+              //serverConnect->perform_transfer(GET_YAW, 0, &currentYaw);
               //currentPitch = vesselAuto->GetPitch();
               //currentYaw = vesselAuto->GetYaw();
               pitchset = currentPitch / 2;
@@ -234,7 +255,10 @@ void NavAP::NavAPMain()
           {
             // Get the latest position of the vessel
             VECTOR3 newPosition;
-            serverConnect->perform_transfer(GET_POS, 0, &newPosition);
+            operation = "GET_POS";
+            detail = "0";
+            serverConnect->test(operation, detail, &newPosition);
+            //serverConnect->perform_transfer(GET_POS, 0, &newPosition);
             // Find direction vectors of new position
             double newXDirection = newPosition.x - currentPos.x;
             double newYDirection = newPosition.y - currentPos.y;
@@ -331,7 +355,10 @@ VECTOR3 NavAP::setNavDestination()
 double NavAP::getAirspeedAngle()
 {
   VECTOR3 speedVector;
-  serverConnect->perform_transfer(GET_AIRSPEED, 0, &speedVector);
+  std::string operation = "GET_AIRSPEED";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &speedVector);
+  //serverConnect->perform_transfer(GET_AIRSPEED, 0, &speedVector);
   double angle;
   angle = atan(speedVector.x / speedVector.z);
   double x = speedVector.x;
@@ -364,13 +391,19 @@ double NavAP::getAirspeedAngle()
 void NavAP::setBankSpeed(double value)
 {
   VECTOR3 currentRotVel;
-  serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
+  std::string operation = "GET_ANG_VEL";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &currentRotVel);
+  //serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
   double deltaVel = value - currentRotVel.z;
   std::cout << "\tdeltavel is " << deltaVel << std::endl;
   // Reset the RCS thrusters to 0 so a bank maneouver
   // is only attempted in a single direction, then set
   // the thrust in a gtiven direction based of the delta velocity
-  serverConnect->perform_transfer(SET_BANK, deltaVel);
+  operation = "SET_BANK";
+  detail = std::to_string(deltaVel);
+  serverConnect->test(operation, detail);
+  //serverConnect->perform_transfer(SET_BANK, deltaVel);
 }
 
 // Set the pitch speed using the angular velocity of the vessel
@@ -378,11 +411,17 @@ void NavAP::setBankSpeed(double value)
 void NavAP::setPitchSpeed(double value)
 {
   VECTOR3 currentRotVel;
-  serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
+  std::string operation = "GET_ANG_VEL";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &currentRotVel);
+  //serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
   double deltaVel = value - currentRotVel.x;
   // Reset the RCS thrusters to 0 so a pitch maneouver
   // is only attempted in a single direction
-  serverConnect->perform_transfer(SET_PITCH, deltaVel);
+  operation = "SET_PITCH";
+  detail = std::to_string(deltaVel);
+  serverConnect->test(operation, detail);
+  //serverConnect->perform_transfer(SET_PITCH, deltaVel);
 }
 
 // Set the yaw speed using the angular velocity of the vessel
@@ -390,11 +429,17 @@ void NavAP::setPitchSpeed(double value)
 void NavAP::setYawSpeed(double value)
 {
   VECTOR3 currentRotVel;
-  serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
+  std::string operation = "GET_ANG_VEL";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &currentRotVel);
+  //serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
   double deltaVel = value - (-currentRotVel.y);
   // Reset the RCS thrusters to 0 so a yaw maneouver
   // is only attempted in a single direction
-  serverConnect->perform_transfer(SET_YAW, deltaVel);
+  operation = "SET_YAW";
+  detail = std::to_string(deltaVel);
+  serverConnect->test(operation, detail);
+  //serverConnect->perform_transfer(SET_YAW, deltaVel);
 }
 
 // Set pitch of vessel relative to previous pitch
@@ -403,7 +448,10 @@ double NavAP::setPitch(double pitch)
   if (pitch > 1.5) pitch = 1.5;
   if (pitch < -1.5) pitch = -1.5;
   double currentPitch;
-  serverConnect->perform_transfer(GET_PITCH, 0, &currentPitch);
+  std::string operation = "GET_PITCH";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &currentPitch);
+  //serverConnect->perform_transfer(GET_PITCH, 0, &currentPitch);
   double deltaPitch = currentPitch - pitch;
   double pitchSpeed = deltaPitch * 0.1;
   if (pitchSpeed > 0.04) pitchSpeed = 0.04;
@@ -423,7 +471,10 @@ double NavAP::setRoll(double roll)
   // (These could be stored in a seperate file on
   // the host system)
   double currentBank;
-  serverConnect->perform_transfer(GET_BANK, 0, &currentBank);
+  std::string operation = "GET_BANK";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &currentBank);
+  //serverConnect->perform_transfer(GET_BANK, 0, &currentBank);
   double deltaBank = currentBank - roll;
   double bankSpeed = deltaBank * 0.1;
   if (bankSpeed > 0.04) bankSpeed = 0.04;
@@ -445,7 +496,10 @@ double NavAP::setDir(double dir)
 void NavAP::getDir(VECTOR3 dir)
 {
   VECTOR3 vesselPos;
-  serverConnect->perform_transfer(GET_POS, 0, &vesselPos);
+  std::string operation = "GET_POS";
+  std::string detail = "0";
+  serverConnect->test(operation, detail, &vesselPos);
+  //serverConnect->perform_transfer(GET_POS, 0, &vesselPos);
   VECTOR3 targetPos = dest;
   VECTOR3 heading;
   for (int i = 0; i < 3; i++) {
