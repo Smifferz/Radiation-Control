@@ -273,24 +273,29 @@ void NavAP::NavAPMain()
             newCheck->vessel_ray.direction.y = newYDirection;
             newCheck->vessel_ray.direction.z = newZDirection;
 
+            // Store the 3D collision coordinate
+            VECTOR3 newCollide;
+            // Store the direction vectors
+            VECTOR3 newDirection;
+
+            // Distance to collision
+            double prevDistance;
+            double nextDistance;
             bool ifNewCollide = newCheck->intersect(newCheck->vessel_ray);
             // If an intersection takes place, determine the collision coordinates
             if (ifNewCollide)
             {
-              // Store the 3D collision coordinate
-              VECTOR3 newCollide;
               // Get collision coordinate
               newCheck->findCollisionCoord(newCheck->vessel_ray, newCollide);
 
               // Generate new direction vectors of collision
-              VECTOR3 newDirection;
               newDirection.x = newCollide.x - newXDirection;
               newDirection.y = newCollide.y - newYDirection;
               newDirection.z = newCollide.z - newZDirection;
 
               // Find the distance to the collision with the
               // new direction vectors
-              double newDistance = getDistance(newDirection);
+              nextDistance = getDistance(newDirection);
             }
             else
             {
@@ -301,8 +306,49 @@ void NavAP::NavAPMain()
 
 
             // If it does then continue on that path
+            // While a collision occurs, keep going in that direction
+            while(ifNewCollide) {
+              // Set the latest position to the old position
+              for(int i = 0; i < NUMDIM; i++) {
+                currentPos.data[i] = newPosition.data[i];
+              }
+              // Find the new current position
+              serverConnect->test(operation,detail,&newPosition);
 
-            // If not then move in opposite direction
+              // Get the new direction vectors
+              newDirection.x = newPosition.x - currentPos.x;
+              newDirection.y = newPosition.y - currentPos.y;
+              newDirection.z = newPosition.z - currentPos.z;
+
+              // Perform another intersect check
+              newCheck->vessel_ray.origin = newPosition;
+              for(int i = 0; i < NUMDIM; i++) {
+                newCheck->vessel_ray.direction.data[i] = newDirection.data[i];
+              }
+              ifNewCollide = newCheck->intersect(newCheck->vessel_ray);
+
+              if (!ifNewCollide) {
+                break;
+              }
+
+              // Get new collision coordinate
+              newCheck->findCollisionCoord(newCheck->vessel_ray, newCollide);
+
+              // Generate the new direction vectors of collision
+              newDirection.x = newCollide.x - newDirection.x;
+              newDirection.y = newCollide.y - newDirection.y;
+              newDirection.z = newCollide.z - newDirection.z;
+
+              // Store the old distance and get a new one
+              prevDistance = nextDistance;
+              nextDistance = getDistance(newDirection);
+
+              if(nextDistance < prevDistance) {
+                // Revert the thrusters to move in the opposite direction
+                // Should keep note of which thrusters were changed previously
+                // and revert them here
+              }
+            }
           }
         }
       }
