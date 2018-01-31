@@ -3,8 +3,8 @@
 
 // ---------------- Navigation Autopilot -------------- //
 // Needs to be portable so as to perform the navigation //
-// calculations on FPGA and just send requests for		//
-// more information from the simulator.					//
+// calculations on FPGA and just send requests for	//
+// more information from the simulator.			//
 // ---------------------------------------------------- //
 
 #include "UDPserver.h"
@@ -52,4 +52,6 @@ private:
   VECTOR3 currentPos;
   VECTOR3 oldPos;
   UDPserver *serverConnect;
+  int completedRCSOperations;
+  double valuesRCS[3];
 };

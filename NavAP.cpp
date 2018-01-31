@@ -190,14 +190,32 @@ void NavAP::NavAPMain()
           distFromCentre.y = nearObjPos.y - currentPos.y;
           distFromCentre.z = nearObjPos.z - currentPos.z;
 
+          /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             |||||||||||||||||||||||||||||||||||||||||||||||
+             |||||||||||||||||||||||||||||||||||||||||||||||
+             The above code gets repeated a lot. Could be
+             useful to convert into a function that gets
+             repeated.    AS - 31/01/2018
+          */
+
           int distIndex = 0;
           for (int index = 1; index < NUMDIM; index++)
           {
-            if (abs(distFromCentre.data[index]) > abs(distFromCentre.data[distIndex]))
+            if (abs(distFromCentre.data[index]) >
+                abs(distFromCentre.data[distIndex]))
               distIndex = index;
           }
 
-          double currentBank, currentYaw, currentPitch, bankset, yawset, pitchset = 0;
+          double currentBank, currentYaw, currentPitch, bankset, yawset,
+              pitchset = 0;
+
+          // Should keep track of what operations have been performed so
+          //that the opposite can be performed if the vessel is moving
+          // in the wrong direction
+          // Uses a weighting system, bank = 1, yaw = 2, pitch = 3
+          // The value for each of the operations in stored in the
+          // valuesRCS array, where position = weight-1
+
           // Perform an adjustment to the direction of the vessel
           switch (distIndex)
           {
@@ -209,10 +227,6 @@ void NavAP::NavAPMain()
               serverConnect->test(operation, detail, &currentBank);
               operation = "GET_YAW";
               serverConnect->test(operation, detail, &currentYaw);
-              //serverConnect->perform_transfer(GET_BANK, 0, &currentBank);
-              //serverConnect->perform_transfer(GET_YAW, 0, &currentYaw);
-              //currentBank = vesselAuto->GetBank();
-              //currentYaw = vesselAuto->GetYaw();
               bankset = currentBank / 2;
               std::cout << "\tbankset is " << bankset << std::endl;
               yawset = currentYaw / 2;
@@ -220,6 +234,7 @@ void NavAP::NavAPMain()
               if (yawset > 0.1) yawset = 0.1;
               setBankSpeed(bankset);
               setYawSpeed(yawset);
+              completedRCSOperations = 3;
               break;
             case 1:
               // Largest in the y axis, move along vertical axis
@@ -228,10 +243,6 @@ void NavAP::NavAPMain()
               serverConnect->test(operation, detail, &currentPitch);
               operation = "GET_YAW";
               serverConnect->test(operation, detail, &currentYaw);
-              //              serverConnect->perform_transfer(GET_PITCH, 0, &currentPitch);
-              //serverConnect->perform_transfer(GET_YAW, 0, &currentYaw);
-              //currentPitch = vesselAuto->GetPitch();
-              //currentYaw = vesselAuto->GetYaw();
               pitchset = currentPitch / 2;
               yawset = currentYaw / 2;
               // If the set values are larger than the max, set to max
@@ -239,10 +250,11 @@ void NavAP::NavAPMain()
               if (yawset > 0.1) yawset = 0.1;
               setPitchSpeed(pitchset);
               setYawSpeed(yawset);
+              completedRCSOperations = 5;
               break;
               // Looking back, I no longer think there is a need to translate for the Z-axis
               // due to only seeing a "face" of the object at a time there is no third
-              // dimension for direction adjustment		30/11/2017
+              // dimension for direction adjustment		AS 30/11/2017
             case 2:
               // Largest in the z axis, move along horizontal axis
               // Requires change in pitch
@@ -258,7 +270,7 @@ void NavAP::NavAPMain()
             operation = "GET_POS";
             detail = "0";
             serverConnect->test(operation, detail, &newPosition);
-            //serverConnect->perform_transfer(GET_POS, 0, &newPosition);
+
             // Find direction vectors of new position
             double newXDirection = newPosition.x - currentPos.x;
             double newYDirection = newPosition.y - currentPos.y;
@@ -376,26 +388,6 @@ VECTOR3 NavAP::setNavDestination()
   return targetDest;
 }
 
-// Get vessel acceleration vectors and store into
-// their associated variables
-//void NavAP::getAccelerations(double dSimTime)
-//{
-//	double simTimeNew = oapiGetSimTime();
-//	VESSEL *V = _VESSEL;
-//	VECTOR3 v3;
-//	V->GetHorizonAirspeedVector(v3);
-//	double horz_speed_new = sqrt((v3.x*v3.x) + (v3.z*v3.z));
-//	double vert_speed_new = v3.y;
-//	deltaVector = getAirspeedAngle() - getDir();
-//	deltaVectorByTime = (deltaVector - deltaVector_old) / dSimTime;
-//	horzAcc = (horz_speed_new - horz_speed_old) / dSimTime;
-//	verAcc = (vert_speed_new - vert_speed_old) / dSimTime;
-//	simTimeOld = simTimeNew;
-//	horz_speed_old = horz_speed_new;
-//	vert_speed_old = vert_speed_new;
-//	deltaVector_old = deltaVector;
-//}
-
 // Get the airspeed angle using oapiGetAirspeedVector
 // and return angle
 double NavAP::getAirspeedAngle()
@@ -416,22 +408,6 @@ double NavAP::getAirspeedAngle()
   return -1;
 }
 
-// Get the relative heading between the vessel and it's destination
-//double NavAP::getRelativeAngle()
-//{
-//	double baseAngle = getDir();
-//	double heading;
-//	VECTOR3 dir;
-//	oapiGetAirspeedVector(_HVESSEL, &dir);
-//	OBJHANDLE vH = _HVESSEL;
-//	oapiGetHeading(vH, &heading);
-//	double diffHeading = baseAngle - heading;
-//	if (diffHeading > PI) diffHeading = (-2 * PI) + diffHeading;
-//	if (diffHeading < -PI) diffHeading = (2 * PI) + diffHeading;
-//	return diffHeading;
-//}
-
-
 // Set the bank speed using the angular velocity of the vessel
 // to set the thrusters in a given direction
 void NavAP::setBankSpeed(double value)
@@ -440,7 +416,6 @@ void NavAP::setBankSpeed(double value)
   std::string operation = "GET_ANG_VEL";
   std::string detail = "0";
   serverConnect->test(operation, detail, &currentRotVel);
-  //serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
   double deltaVel = value - currentRotVel.z;
   std::cout << "\tdeltavel is " << deltaVel << std::endl;
   // Reset the RCS thrusters to 0 so a bank maneouver
@@ -449,7 +424,6 @@ void NavAP::setBankSpeed(double value)
   operation = "SET_BANK";
   detail = std::to_string(deltaVel);
   serverConnect->test(operation, detail);
-  //serverConnect->perform_transfer(SET_BANK, deltaVel);
 }
 
 // Set the pitch speed using the angular velocity of the vessel
@@ -460,14 +434,12 @@ void NavAP::setPitchSpeed(double value)
   std::string operation = "GET_ANG_VEL";
   std::string detail = "0";
   serverConnect->test(operation, detail, &currentRotVel);
-  //serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
   double deltaVel = value - currentRotVel.x;
   // Reset the RCS thrusters to 0 so a pitch maneouver
   // is only attempted in a single direction
   operation = "SET_PITCH";
   detail = std::to_string(deltaVel);
   serverConnect->test(operation, detail);
-  //serverConnect->perform_transfer(SET_PITCH, deltaVel);
 }
 
 // Set the yaw speed using the angular velocity of the vessel
@@ -478,14 +450,12 @@ void NavAP::setYawSpeed(double value)
   std::string operation = "GET_ANG_VEL";
   std::string detail = "0";
   serverConnect->test(operation, detail, &currentRotVel);
-  //serverConnect->perform_transfer(GET_ANG_VEL, 0, &currentRotVel);
   double deltaVel = value - (-currentRotVel.y);
   // Reset the RCS thrusters to 0 so a yaw maneouver
   // is only attempted in a single direction
   operation = "SET_YAW";
   detail = std::to_string(deltaVel);
   serverConnect->test(operation, detail);
-  //serverConnect->perform_transfer(SET_YAW, deltaVel);
 }
 
 // Set pitch of vessel relative to previous pitch
@@ -497,7 +467,6 @@ double NavAP::setPitch(double pitch)
   std::string operation = "GET_PITCH";
   std::string detail = "0";
   serverConnect->test(operation, detail, &currentPitch);
-  //serverConnect->perform_transfer(GET_PITCH, 0, &currentPitch);
   double deltaPitch = currentPitch - pitch;
   double pitchSpeed = deltaPitch * 0.1;
   if (pitchSpeed > 0.04) pitchSpeed = 0.04;
@@ -510,17 +479,10 @@ double NavAP::setPitch(double pitch)
 double NavAP::setRoll(double roll)
 {
   roll = -roll;
-  //TODO: Add request for bank here
-  // Maybe the requests should be done with
-  // integer values where the integer corresponds
-  // to a function request
-  // (These could be stored in a seperate file on
-  // the host system)
   double currentBank;
   std::string operation = "GET_BANK";
   std::string detail = "0";
   serverConnect->test(operation, detail, &currentBank);
-  //serverConnect->perform_transfer(GET_BANK, 0, &currentBank);
   double deltaBank = currentBank - roll;
   double bankSpeed = deltaBank * 0.1;
   if (bankSpeed > 0.04) bankSpeed = 0.04;
@@ -545,7 +507,6 @@ void NavAP::getDir(VECTOR3 dir)
   std::string operation = "GET_POS";
   std::string detail = "0";
   serverConnect->test(operation, detail, &vesselPos);
-  //serverConnect->perform_transfer(GET_POS, 0, &vesselPos);
   VECTOR3 targetPos = dest;
   VECTOR3 heading;
   for (int i = 0; i < 3; i++) {
