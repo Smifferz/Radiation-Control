@@ -31,19 +31,6 @@ private:
   double setRoll(double roll);
   double setDir(double dir);
   void getDir(VECTOR3 dir);
-  double headingOld;
-  double distOld;
-  double dSimTime;
-  double simTimeOld;
-  double deltaVector;
-  double deltaVector_old;
-  double deltaVectorByTime;
-  double horz_speed_old;
-  double vert_speed_old;
-  double vert_speed_last_zycl;
-  double horzAcc;
-  double verAcc;
-  double HSSum[20][2];
   double getDistance(VECTOR3 heading);
   double getRCSThrustByDelta(double deltaSpeed);
   double getAirspeedAngle();
@@ -54,4 +41,5 @@ private:
   UDPserver *serverConnect;
   int completedRCSOperations;
   double valuesRCS[3];
+  double valuesDelta[3];
 };

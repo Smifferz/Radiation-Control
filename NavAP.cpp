@@ -52,13 +52,13 @@ NavAP::NavAP(int debug)
 // present in the simulation
 void NavAP::init()
 {
-  simTimeOld = 0;
-  horz_speed_old = 0;
-  vert_speed_old = 0;
-  dSimTime = 0;
-  distOld = 0;
-  headingOld = 0;
-  vert_speed_last_zycl = 0;
+  //simTimeOld = 0;
+  //horz_speed_old = 0;
+  //vert_speed_old = 0;
+  //dSimTime = 0;
+  //distOld = 0;
+  //headingOld = 0;
+  //vert_speed_last_zycl = 0;
   // When initialising a new vessel, add one to the index
   g_Dest[activeIndex].isActive = false;
   g_Dest[activeIndex].isSet = false;
@@ -95,6 +95,11 @@ void NavAP::NavAPMain()
   //serverConnect->perform_transfer(GET_POS, 0, &currentPos);
   std::cout << "The position is x = " << currentPos.data[0] << " y = " << currentPos.data[1] << " z = " << currentPos.data[2] << std::endl;
 
+  // Set the main thrusters
+  operation = "SET_THRUST";
+  detail = "1";
+  serverConnect->test(operation, detail);
+  std::cout << "Main thruster has been set" << std::endl;
   // create a 3d-vector for the near objects
   VECTOR3 nearObjPos;
   // while the vessel isn't at the destination
@@ -359,20 +364,41 @@ void NavAP::NavAPMain()
                 // Revert the thrusters to move in the opposite direction
                 // Should keep note of which thrusters were changed previously
                 // and revert them here
+                switch(completedRCSOperations)
+                {
+                  // Bank and Yaw operations have been performed
+                  case 3:
+                    // Perform the opposite operation to what has been
+                    // done previously
+                    setBankSpeed((valuesDelta[0] * -1 ));
+                    setYawSpeed((valuesDelta[2] * -1));
+                    break;
+                  case 5:
+                    setPitchSpeed((valuesDelta[1] * -1));
+                    setYawSpeed((valuesDelta[2] * -1));
+                    break;
+                  default:
+                    std::cout << "RCS operations couldn't be determined" << std::endl;
+                    break;
+                }
               }
             }
           }
+          // Can reset the RCS thrusters to 0 so the vessel moves in a straight line again
+          setBankSpeed(0);
+          setYawSpeed(0);
+          setPitchSpeed(0);
         }
       }
+    }
 
       // ---------------------------------------------------------------------------------------//
 
 
 
       // Set main thrusters to progress along path
-    }
-
 }
+
 
 
 // Reads an input file specifying parameters for
@@ -423,7 +449,8 @@ void NavAP::setBankSpeed(double value)
   // the thrust in a gtiven direction based of the delta velocity
   operation = "SET_BANK";
   detail = std::to_string(deltaVel);
-  serverConnect->test(operation, detail);
+  serverConnect->test(operation, detail, &valuesRCS[0]);
+  valuesDelta[0] = deltaVel;
 }
 
 // Set the pitch speed using the angular velocity of the vessel
@@ -439,7 +466,8 @@ void NavAP::setPitchSpeed(double value)
   // is only attempted in a single direction
   operation = "SET_PITCH";
   detail = std::to_string(deltaVel);
-  serverConnect->test(operation, detail);
+  serverConnect->test(operation, detail, &valuesRCS[1]);
+  valuesDelta[1] = deltaVel;
 }
 
 // Set the yaw speed using the angular velocity of the vessel
@@ -455,7 +483,8 @@ void NavAP::setYawSpeed(double value)
   // is only attempted in a single direction
   operation = "SET_YAW";
   detail = std::to_string(deltaVel);
-  serverConnect->test(operation, detail);
+  serverConnect->test(operation, detail, &valuesRCS[2]);
+  valuesDelta[2] = deltaVel;
 }
 
 // Set pitch of vessel relative to previous pitch
