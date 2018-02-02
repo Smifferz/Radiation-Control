@@ -9,10 +9,7 @@
 // the vessel depending on surrounding environment.
 
 #include "NavAP.h"
-#include "RayBox.h"
-#include "types.h"
 #include "opcodes.h"
-#include "UDPserver.h"
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"

@@ -8,6 +8,7 @@
 // ---------------------------------------------------- //
 
 #include "UDPserver.h"
+#include "RayBox.h"
 #include "types.h"
 #include <thread>
 
@@ -33,6 +34,7 @@ private:
   double getDistance(VECTOR3 heading);
   double getRCSThrustByDelta(double deltaSpeed);
   double getAirspeedAngle();
+  void setupNewRay(RayBox *newRay, VECTOR3 *currentPosition);
   int activeIndex;
   VECTOR3 dest;
   VECTOR3 currentPos;
