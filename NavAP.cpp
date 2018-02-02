@@ -190,14 +190,6 @@ void NavAP::NavAPMain()
           distFromCentre.y = nearObjPos.y - currentPos.y;
           distFromCentre.z = nearObjPos.z - currentPos.z;
 
-          /* ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-             |||||||||||||||||||||||||||||||||||||||||||||||
-             |||||||||||||||||||||||||||||||||||||||||||||||
-             The above code gets repeated a lot. Could be
-             useful to convert into a function that gets
-             repeated.    AS - 31/01/2018
-          */
-
           int distIndex = 0;
           for (int index = 1; index < NUMDIM; index++)
           {
