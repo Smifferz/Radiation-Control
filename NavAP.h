@@ -11,6 +11,7 @@
 #include "RayBox.h"
 #include "types.h"
 #include <thread>
+#include <string>
 
 class NavAP
 {
@@ -43,4 +44,6 @@ private:
   int completedRCSOperations;
   double valuesRCS[3];
   double valuesDelta[3];
+  std::string operation;
+  std::string detail;
 };

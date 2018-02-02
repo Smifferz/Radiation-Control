@@ -77,8 +77,8 @@ void NavAP::NavAPMain()
   // set the destination for the vessel
   VECTOR3 destinationPos;
 
-  std::string operation = "GET_POS";
-  std::string detail = "60";
+  operation = "GET_POS";
+  detail = "60";
   serverConnect->test(operation, detail, &destinationPos);
   //serverConnect->perform_transfer(GET_POS, 60, &destinationPos);
   std::cout << "The destination is x = " << destinationPos.data[0] << " y = " << destinationPos.data[1] << " z = " << destinationPos.data[2] << std::endl;
@@ -254,9 +254,9 @@ void NavAP::NavAPMain()
           {
             // Create new ray collider object
             RayBox *newRay = new RayBox(nearObjPos, objSize);
-        
+
             // Setup the ray properties for the collider
-            setupNewRay(&newRay, &currentPos);
+            setupNewRay(newRay, &currentPos);
 
             // Store the 3D collision coordinate
             VECTOR3 newCollide;
@@ -274,9 +274,9 @@ void NavAP::NavAPMain()
               newRay->findCollisionCoord(newRay->vessel_ray, newCollide);
 
               // Generate new direction vectors of collision
-              newDirection.x = newCollide.x - newXDirection;
-              newDirection.y = newCollide.y - newYDirection;
-              newDirection.z = newCollide.z - newZDirection;
+              newDirection.x = newCollide.x - newRay->vessel_ray.direction.x;
+              newDirection.y = newCollide.y - newRay->vessel_ray.direction.y;
+              newDirection.z = newCollide.z - newRay->vessel_ray.direction.z;
 
               // Find the distance to the collision with the
               // new direction vectors
@@ -293,9 +293,9 @@ void NavAP::NavAPMain()
             // If it does then continue on that path
             // While a collision occurs, keep going in that direction
             while(ifNewCollide) {
-              
-              setupNewRay(&newRay, &currentPos);
-              
+
+              setupNewRay(newRay, &currentPos);
+
               ifNewCollide = newRay->intersect(newRay->vessel_ray);
 
               if (!ifNewCollide) {
@@ -308,9 +308,9 @@ void NavAP::NavAPMain()
               newRay->findCollisionCoord(newRay->vessel_ray, newCollide);
 
               // Generate the new direction vectors of collision
-              newDirection.x = newCollide.x - newDirection.x;
-              newDirection.y = newCollide.y - newDirection.y;
-              newDirection.z = newCollide.z - newDirection.z;
+              newDirection.x = newCollide.x - newRay->vessel_ray.direction.x;
+              newDirection.y = newCollide.y - newRay->vessel_ray.direction.y;
+              newDirection.z = newCollide.z - newRay->vessel_ray.direction.z;
 
               // Store the old distance and get a new one
               prevDistance = nextDistance;
@@ -506,12 +506,12 @@ double NavAP::getDistance(VECTOR3 heading)
 
 
 
-void NavAP:setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
+void NavAP::setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
 {
     // Store the previous position to an old position
     oldPos.x = currentPosition->x;
     oldPos.y = currentPosition->y;
-    oldPos.z = currentPos->z;
+    oldPos.z = currentPosition->z;
     // Get the latest position of the vessel
     operation = "GET_POS";
     detail = "0";
@@ -523,9 +523,9 @@ void NavAP:setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
     double newZDirection = currentPos.z - oldPos.z;
 
     // Use new vectors to check collision again
-    
+
     // Set the properties of the collision ray
-    ray->vessel_ray.origin = newPosition;
+    ray->vessel_ray.origin = currentPos;
     ray->vessel_ray.direction.x = newXDirection;
     ray->vessel_ray.direction.y = newYDirection;
     ray->vessel_ray.direction.z = newZDirection;
