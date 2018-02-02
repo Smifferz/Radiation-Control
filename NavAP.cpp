@@ -86,9 +86,7 @@ void NavAP::NavAPMain()
   //serverConnect->perform_transfer(GET_POS, 60, &destinationPos);
   std::cout << "The destination is x = " << destinationPos.data[0] << " y = " << destinationPos.data[1] << " z = " << destinationPos.data[2] << std::endl;
 
-  dest.x = destinationPos.x;
-  dest.y = destinationPos.y;
-  dest.z = destinationPos.z;
+  setNavDestination(&destinationPos);
 
   detail = "0";
   serverConnect->test(operation, detail, &currentPos);
@@ -104,8 +102,8 @@ void NavAP::NavAPMain()
   VECTOR3 nearObjPos;
   // while the vessel isn't at the destination
   while (!((currentPos.x < dest.x + 5) && (currentPos.x > dest.x - 5) &&
-         (currentPos.y < dest.y + 5) && (currentPos.y > dest.x - 5) &&
-           (currentPos.z < dest.z + 5) && (currentPos.z > dest.z - 5)))
+          (currentPos.y < dest.y + 5) && (currentPos.y > dest.x - 5) &&
+          (currentPos.z < dest.z + 5) && (currentPos.z > dest.z - 5)))
     {
       // count the objects currently in the rendered simulation area
       double num_obj = 0;
@@ -214,12 +212,6 @@ void NavAP::NavAPMain()
           double currentBank, currentYaw, currentPitch, bankset, yawset,
               pitchset = 0;
 
-          // Should keep track of what operations have been performed so
-          //that the opposite can be performed if the vessel is moving
-          // in the wrong direction
-          // Uses a weighting system, bank = 1, yaw = 2, pitch = 3
-          // The value for each of the operations in stored in the
-          // valuesRCS array, where position = weight-1
 
           // Perform an adjustment to the direction of the vessel
           switch (distIndex)
@@ -257,38 +249,17 @@ void NavAP::NavAPMain()
               setYawSpeed(yawset);
               completedRCSOperations = 5;
               break;
-              // Looking back, I no longer think there is a need to translate for the Z-axis
-              // due to only seeing a "face" of the object at a time there is no third
-              // dimension for direction adjustment		AS 30/11/2017
-            case 2:
-              // Largest in the z axis, move along horizontal axis
-              // Requires change in pitch
-              break;
           }
           // Check if the direction reduces the distance to collision
           // point on the collision object
           bool pathCollision = true;
           while (pathCollision)
           {
-            // Get the latest position of the vessel
-            VECTOR3 newPosition;
-            operation = "GET_POS";
-            detail = "0";
-            serverConnect->test(operation, detail, &newPosition);
-
-            // Find direction vectors of new position
-            double newXDirection = newPosition.x - currentPos.x;
-            double newYDirection = newPosition.y - currentPos.y;
-            double newZDirection = newPosition.z - currentPos.z;
-
-            // Use new vectors to check collision again
-            RayBox *newCheck = new RayBox(nearObjPos, objSize);
-
-            // Set the properties of the collision ray
-            newCheck->vessel_ray.origin = newPosition;
-            newCheck->vessel_ray.direction.x = newXDirection;
-            newCheck->vessel_ray.direction.y = newYDirection;
-            newCheck->vessel_ray.direction.z = newZDirection;
+            // Create new ray collider object
+            RayBox *newRay = new RayBox(nearObjPos, objSize);
+        
+            // Setup the ray properties for the collider
+            setupNewRay(&newRay, &currentPos);
 
             // Store the 3D collision coordinate
             VECTOR3 newCollide;
@@ -298,12 +269,12 @@ void NavAP::NavAPMain()
             // Distance to collision
             double prevDistance;
             double nextDistance;
-            bool ifNewCollide = newCheck->intersect(newCheck->vessel_ray);
+            bool ifNewCollide = newRay->intersect(newRay->vessel_ray);
             // If an intersection takes place, determine the collision coordinates
             if (ifNewCollide)
             {
               // Get collision coordinate
-              newCheck->findCollisionCoord(newCheck->vessel_ray, newCollide);
+              newRay->findCollisionCoord(newRay->vessel_ray, newCollide);
 
               // Generate new direction vectors of collision
               newDirection.x = newCollide.x - newXDirection;
@@ -325,31 +296,19 @@ void NavAP::NavAPMain()
             // If it does then continue on that path
             // While a collision occurs, keep going in that direction
             while(ifNewCollide) {
-              // Set the latest position to the old position
-              for(int i = 0; i < NUMDIM; i++) {
-                currentPos.data[i] = newPosition.data[i];
-              }
-              // Find the new current position
-              serverConnect->test(operation,detail,&newPosition);
-
-              // Get the new direction vectors
-              newDirection.x = newPosition.x - currentPos.x;
-              newDirection.y = newPosition.y - currentPos.y;
-              newDirection.z = newPosition.z - currentPos.z;
-
-              // Perform another intersect check
-              newCheck->vessel_ray.origin = newPosition;
-              for(int i = 0; i < NUMDIM; i++) {
-                newCheck->vessel_ray.direction.data[i] = newDirection.data[i];
-              }
-              ifNewCollide = newCheck->intersect(newCheck->vessel_ray);
+              
+              setupNewRay(&newRay, &currentPos);
+              
+              ifNewCollide = newRay->intersect(newRay->vessel_ray);
 
               if (!ifNewCollide) {
                 break;
               }
 
+
+
               // Get new collision coordinate
-              newCheck->findCollisionCoord(newCheck->vessel_ray, newCollide);
+              newRay->findCollisionCoord(newRay->vessel_ray, newCollide);
 
               // Generate the new direction vectors of collision
               newDirection.x = newCollide.x - newDirection.x;
@@ -372,10 +331,12 @@ void NavAP::NavAPMain()
                     // done previously
                     setBankSpeed((valuesDelta[0] * -1 ));
                     setYawSpeed((valuesDelta[2] * -1));
+                    completedRCSOperations = 0;
                     break;
                   case 5:
                     setPitchSpeed((valuesDelta[1] * -1));
                     setYawSpeed((valuesDelta[2] * -1));
+                    completedRCSOperations = 0;
                     break;
                   default:
                     std::cout << "RCS operations couldn't be determined" << std::endl;
@@ -401,17 +362,12 @@ void NavAP::NavAPMain()
 
 
 
-// Reads an input file specifying parameters for
-// the target destination for the vessel
-VECTOR3 NavAP::setNavDestination()
+// Store an input vector into the destination vector
+void NavAP::setNavDestination(VECTOR3 *targetDest)
 {
-  // Read in input file
-  // Parse input file for given destination
-  // If no destination given then error
-  VECTOR3 targetDest;
-  // Populate targetDest with data from file
-  //
-  return targetDest;
+  for(int i = 0; i < 3; i++) {
+    dest.data[i] = targetDest->data[i];
+  }
 }
 
 // Get the airspeed angle using oapiGetAirspeedVector
@@ -520,17 +476,8 @@ double NavAP::setRoll(double roll)
   return 0;
 }
 
-// TODO: Need to determine the approach to set
-// the direction
-double NavAP::setDir(double dir)
-{
-  return 0;
-}
-
 // Returns the normalised direction to the set target
-//TODO: This should be completely done on the host
-// only the navigation should be done on the FPGA
-void NavAP::getDir(VECTOR3 dir)
+void NavAP::setDir(VECTOR3 dir)
 {
   VECTOR3 vesselPos;
   std::string operation = "GET_POS";
@@ -538,20 +485,18 @@ void NavAP::getDir(VECTOR3 dir)
   serverConnect->test(operation, detail, &vesselPos);
   VECTOR3 targetPos = dest;
   VECTOR3 heading;
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < NUMDIM; i++) {
     heading.data[i] = targetPos.data[i] - vesselPos.data[i];
   }
   double distance = getDistance(heading);
   VECTOR3 direction;
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < NUMDIM; i++) {
     direction.data[i] = heading.data[i] / distance;
   }
   dir = direction;
 }
 
 // Get the distance from the vessel to the target position
-//TODO: This should be completely done on the host
-// only the navigation should be done on the FPGA
 double NavAP::getDistance(VECTOR3 heading)
 {
   float power = 2.0;
@@ -560,4 +505,31 @@ double NavAP::getDistance(VECTOR3 heading)
   double headingDistZ = pow(heading.z, power);
   double headingDistance = sqrt(headingDistX + headingDistY + headingDistZ);
   return headingDistance;
+}
+
+
+
+void NavAP:setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
+{
+    // Store the previous position to an old position
+    oldPos.x = currentPosition->x;
+    oldPos.y = currentPosition->y;
+    oldPos.z = currentPos->z;
+    // Get the latest position of the vessel
+    operation = "GET_POS";
+    detail = "0";
+    serverConnect->test(operation, detail, &currentPos);
+
+    // Find direction vectors of new position
+    double newXDirection = currentPos.x - oldPos.x;
+    double newYDirection = currentPos.y - oldPos.y;
+    double newZDirection = currentPos.z - oldPos.z;
+
+    // Use new vectors to check collision again
+    
+    // Set the properties of the collision ray
+    ray->vessel_ray.origin = newPosition;
+    ray->vessel_ray.direction.x = newXDirection;
+    ray->vessel_ray.direction.y = newYDirection;
+    ray->vessel_ray.direction.z = newZDirection;
 }

@@ -16,7 +16,6 @@ class NavAP
 public:
   NavAP(int debug);
   void init();
-  VECTOR3 setNavDestination();
   void NavAPMain();
   void getActiveIndex(int vesselIndex);
   bool isCollision;
@@ -24,13 +23,13 @@ public:
   double progressThrust;
   bool check_ping();
 private:
+  void setNavDestination(VECTOR3 *targetDest);
   void setBankSpeed(double value);
   void setPitchSpeed(double value);
   void setYawSpeed(double value);
   double setPitch(double pitch);
   double setRoll(double roll);
-  double setDir(double dir);
-  void getDir(VECTOR3 dir);
+  void setDir(VECTOR3 dir);
   double getDistance(VECTOR3 heading);
   double getRCSThrustByDelta(double deltaSpeed);
   double getAirspeedAngle();
