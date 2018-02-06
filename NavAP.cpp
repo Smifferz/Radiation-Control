@@ -334,36 +334,19 @@ void NavAP::NavAPMain()
               }
             }
           }
-          std::cout << "Resetting the RCS thrusters" << std::endl;
-          getchar();
 
           // Can reset the RCS thrusters to 0 so the vessel moves in a straight line again
-          // setBankSpeed(0);
           setPitch(0);
           setRoll(0);
-          std::cout << "Resetting the RCS thrusters" << std::endl;
-          getchar();
-          //setYawSpeed(0);
-          //setPitchSpeed(0);
+
         }
         // Ensure the vessel is en-route to the destination
-
-        // Get the current position of the vessel
-        VECTOR3 currentPosition;
-        operation = "GET_POS";
-        detail = "0";
-        serverConnect->test(operation, detail, &currentPosition);
-
-
+        VECTOR3 direction;
+        // Set the direction of the vessel
+        setDir(&direction);
 
       }
     }
-
-      // ---------------------------------------------------------------------------------------//
-
-
-
-      // Set main thrusters to progress along path
 }
 
 
@@ -483,23 +466,44 @@ void NavAP::setRoll(double roll)
 }
 
 // Returns the normalised direction to the set target
-void NavAP::setDir(VECTOR3 dir)
+void NavAP::setDir(VECTOR3 *dir)
 {
   VECTOR3 vesselPos;
-  std::string operation = "GET_POS";
-  std::string detail = "0";
+  operation = "GET_POS";
+  detail = "0";
   serverConnect->test(operation, detail, &vesselPos);
   VECTOR3 targetPos = dest;
+  // Find the heading to target destination
   VECTOR3 heading;
   for (int i = 0; i < NUMDIM; i++) {
     heading.data[i] = targetPos.data[i] - vesselPos.data[i];
   }
   double distance = getDistance(heading);
+  // Normalise the heading
   VECTOR3 direction;
   for (int i = 0; i < NUMDIM; i++) {
     direction.data[i] = heading.data[i] / distance;
   }
-  dir = direction;
+  *dir = direction;
+}
+
+// Returns the normalised direction of the current heading
+void NavAP::getHeading(VECTOR3 *heading)
+{
+  // Store previous current position
+  VECTOR3 tempPos = currentPos;
+  operation = "GET_POS";
+  detail = "0";
+  serverConnect->test(operation, detail, &currentPos);
+  // Find the current heading of vessel
+  for(int i = 0; i < NUMDIM; i++) {
+    heading->data[i] = currentPos.data[i] - tempPos.data[i];
+  }
+  double distance = getDistance(*heading);
+  // Normalise the heading
+  for(int i = 0; i < NUMDIM; i++) {
+    heading->data[i] = heading->data[i] / distance;
+  }
 }
 
 // Get the distance from the vessel to the target position
@@ -538,4 +542,11 @@ void NavAP::setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
     ray->vessel_ray.direction.x = newXDirection;
     ray->vessel_ray.direction.y = newYDirection;
     ray->vessel_ray.direction.z = newZDirection;
+}
+
+double NavAP::dot(VECTOR3 headingA, VECTOR3 headingB)
+{
+  return(headingA.x * headingB.x +
+         headingA.y * headingB.y +
+         headingA.z * headingB.z);
 }

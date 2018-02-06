@@ -31,10 +31,12 @@ private:
   void setYawSpeed(double value);
   void setPitch(double pitch);
   void setRoll(double roll);
-  void setDir(VECTOR3 dir);
+  void setDir(VECTOR3 *dir);
   double getDistance(VECTOR3 heading);
   double getRCSThrustByDelta(double deltaSpeed);
   double getAirspeedAngle();
+  void getHeading(VECTOR3 *heading);
+  double dot(VECTOR3 headingA, VECTOR3 headingB);
   void setupNewRay(RayBox *newRay, VECTOR3 *currentPosition);
   int activeIndex;
   VECTOR3 dest;
