@@ -526,7 +526,7 @@ double NavAP::getDistance(VECTOR3 heading)
 }
 
 
-
+// Perform the setup for a new ray collision calculation
 void NavAP::setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
 {
     // Store the previous position to an old position
@@ -552,6 +552,8 @@ void NavAP::setupNewRay(RayBox *ray, VECTOR3 *currentPosition)
     ray->vessel_ray.direction.z = newZDirection;
 }
 
+// Perform the dot product on the input vectors and return
+// the result
 double NavAP::dot(VECTOR3 headingA, VECTOR3 headingB)
 {
   return(headingA.x * headingB.x +
@@ -559,11 +561,13 @@ double NavAP::dot(VECTOR3 headingA, VECTOR3 headingB)
          headingA.z * headingB.z);
 }
 
+// Find the angle from the dot product of two vectors
 double NavAP::findAngleFromDot(double dot)
 {
   return acos(dot);
 }
 
+// Get the relative heading between two 3D vectors
 double NavAP::getRelativeHeadingAngle()
 {
     // Set the Normalised direction of the vessel
