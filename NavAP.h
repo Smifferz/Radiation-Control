@@ -38,6 +38,7 @@ private:
   void getHeading(VECTOR3 *heading);
   double dot(VECTOR3 headingA, VECTOR3 headingB);
   double findAngleFromDot(double dot);
+  double getRelativeHeadingAngle();
   void setupNewRay(RayBox *newRay, VECTOR3 *currentPosition);
   int activeIndex;
   VECTOR3 dest;

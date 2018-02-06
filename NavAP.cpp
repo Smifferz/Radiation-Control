@@ -138,7 +138,8 @@ void NavAP::NavAPMain()
         //serverConnect->perform_transfer(GET_SIZE, i, &objSize);
         RayBox *collisionCheck = new RayBox(nearObjPos, objSize);
 
-        // Generate a Ray using the global position and the direction vector for the vessel
+        // Generate a Ray using the global position and the direction vector
+        // for the vessel
         collisionCheck->vessel_ray.origin = currentPos;
         collisionCheck->vessel_ray.direction.x = directionX;
         collisionCheck->vessel_ray.direction.y = directionY;
@@ -155,7 +156,8 @@ void NavAP::NavAPMain()
           VECTOR3 collisionCoord;
 
           // Get the coordinates of the collision
-          collisionCheck->findCollisionCoord(collisionCheck->vessel_ray, collisionCoord);
+          collisionCheck->findCollisionCoord(collisionCheck->vessel_ray,
+                                             collisionCoord);
 
           // Create the direction vectors between the vessel and collision coord
           VECTOR3 collisionDir;
@@ -163,19 +165,12 @@ void NavAP::NavAPMain()
           collisionDir.y = collisionCoord.y - currentPos.y;
           collisionDir.z = collisionCoord.z - currentPos.z;
 
-          // Calculate the distance to the collision coordinate
-          // NOTE: This is not currently the precise distance if the
-          // object is non-cuboid as it treats the incident "face" as
-          // a plane so the distance will be constant if square on with
-          // the collision object
-          double collisionDistance = getDistance(collisionDir);
-
           // Finding the coordinate for a point on the associated edge of
           // a collision object based on the mean radius can be performed
           // via rearranging the equation for finding the distance between
           // two vector coordinates
           // example:
-          // Ex = Cx - sqrt(pow(radius, 2.0) - pow(Cy-Ey, 2.0) - pow(Cz - Ez, 2.0))
+          // Ex = Cx - sqrt(pow(radius, 2.0)-pow(Cy-Ey, 2.0)-pow(Cz - Ez, 2.0))
           // Where E = edge, C = centre and the x,y and z can be interchanged
           // depending which axis we are investigating
 
@@ -259,7 +254,8 @@ void NavAP::NavAPMain()
             double prevDistance;
             double nextDistance;
             bool ifNewCollide = newRay->intersect(newRay->vessel_ray);
-            // If an intersection takes place, determine the collision coordinates
+            // If an intersection takes place, determine the collision
+            // coordinates
             if (ifNewCollide)
             {
               // Get collision coordinate
@@ -294,8 +290,6 @@ void NavAP::NavAPMain()
                 break;
               }
 
-
-
               // Get new collision coordinate
               newRay->findCollisionCoord(newRay->vessel_ray, newCollide);
 
@@ -314,6 +308,8 @@ void NavAP::NavAPMain()
                 // and revert them here
                 switch(completedRCSOperations)
                 {
+                    // TODO: May replace these functions with the setRoll() and
+                    // setPitch() functions as they have a better control loop
                   // Bank and Yaw operations have been performed
                   case 3:
                     // Perform the opposite operation to what has been
@@ -328,35 +324,35 @@ void NavAP::NavAPMain()
                     completedRCSOperations = 0;
                     break;
                   default:
-                    std::cout << "RCS operations couldn't be determined" << std::endl;
+                    std::cout << "RCS operations couldn't be determined"
+                              << std::endl;
                     break;
                 }
               }
             }
           }
 
-          // Can reset the RCS thrusters to 0 so the vessel moves in a straight line again
+          // Can reset the RCS thrusters to 0 so the vessel moves in a straight
+          // line again
           setPitch(0);
           setRoll(0);
 
         }
         // Ensure the vessel is en-route to the destination
-        // Set the Normalised direction of the vessel
-        VECTOR3 direction;
-        setDir(&direction);
 
-        // Get the current heading of the vessel
-        VECTOR3 currentHeading;
-        getHeading(&currentHeading);
-
-        // Find the dot product
-        double dotHeading = dot(direction, currentHeading);
-
-        // Get the angle from the dot product
-        double angle = findAngleFromDot(dotHeading);
-
-
-
+        double relativeAngle = getRelativeHeadingAngle();
+        // Determine if the relative angle is within appropriate limits
+        while(relativeAngle > 5 || relativeAngle < -5) {
+            if (relativeAngle > 180) {
+                //TODO: Need to check if there is a getYaw() function
+                setYawSpeed(0.04);
+            }
+            else {
+                setYawSpeed(-0.04);
+            }
+            // Check the current relative angle between the bearings
+            relativeAngle = getRelativeHeadingAngle();
+        }
       }
     }
 }
@@ -566,4 +562,23 @@ double NavAP::dot(VECTOR3 headingA, VECTOR3 headingB)
 double NavAP::findAngleFromDot(double dot)
 {
   return acos(dot);
+}
+
+double NavAP::getRelativeHeadingAngle()
+{
+    // Set the Normalised direction of the vessel
+    VECTOR3 direction;
+    setDir(&direction);
+
+    // Get the current heading of the vessel
+    VECTOR3 currentHeading;
+    getHeading(&currentHeading);
+
+    // Find the dot product using the normalised headings
+    double dotHeading = dot(direction, currentHeading);
+
+    // Get the angle from the dot product
+    double angle = findAngleFromDot(dotHeading);
+
+    return angle;
 }
