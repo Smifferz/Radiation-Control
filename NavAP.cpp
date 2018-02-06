@@ -341,15 +341,17 @@ void NavAP::NavAPMain()
           // setBankSpeed(0);
           setPitch(0);
           setRoll(0);
+          std::cout << "Resetting the RCS thrusters" << std::endl;
+          getchar();
           //setYawSpeed(0);
           //setPitchSpeed(0);
         }
         // Ensure the vessel is en-route to the destination
 
         // Get the current position of the vessel
-        VECTOR3 *currentPosition;
+        VECTOR3 currentPosition;
         operation = "GET_POS";
-        detail = 0;
+        detail = "0";
         serverConnect->test(operation, detail, &currentPosition);
 
 
@@ -448,36 +450,36 @@ void NavAP::setYawSpeed(double value)
 }
 
 // Set pitch of vessel relative to previous pitch
-double NavAP::setPitch(double pitch)
+void NavAP::setPitch(double pitch)
 {
   if (pitch > 1.5) pitch = 1.5;
   if (pitch < -1.5) pitch = -1.5;
   double currentPitch;
-  std::string operation = "GET_PITCH";
-  std::string detail = "0";
+  operation = "GET_PITCH";
+  detail = "0";
+  std::cout << "Sending operation " << operation << " : " << detail << std::endl;
   serverConnect->test(operation, detail, &currentPitch);
   double deltaPitch = currentPitch - pitch;
   double pitchSpeed = deltaPitch * 0.1;
   if (pitchSpeed > 0.04) pitchSpeed = 0.04;
   if (pitchSpeed < -0.04) pitchSpeed = -0.04;
   setPitchSpeed(-pitchSpeed);
-  return 0;
 }
 
 // Set roll of vessel relative to previous bank
-double NavAP::setRoll(double roll)
+void NavAP::setRoll(double roll)
 {
   roll = -roll;
   double currentBank;
-  std::string operation = "GET_BANK";
-  std::string detail = "0";
+  operation = "GET_BANK";
+  detail = "0";
+  std::cout << "Sending operation " << operation << " : " << detail << std::endl;
   serverConnect->test(operation, detail, &currentBank);
   double deltaBank = currentBank - roll;
   double bankSpeed = deltaBank * 0.1;
   if (bankSpeed > 0.04) bankSpeed = 0.04;
   if (bankSpeed < -0.04) bankSpeed = -0.04;
   setBankSpeed(bankSpeed);
-  return 0;
 }
 
 // Returns the normalised direction to the set target

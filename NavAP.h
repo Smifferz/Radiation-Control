@@ -29,8 +29,8 @@ private:
   void setBankSpeed(double value);
   void setPitchSpeed(double value);
   void setYawSpeed(double value);
-  double setPitch(double pitch);
-  double setRoll(double roll);
+  void setPitch(double pitch);
+  void setRoll(double roll);
   void setDir(VECTOR3 dir);
   double getDistance(VECTOR3 heading);
   double getRCSThrustByDelta(double deltaSpeed);
@@ -44,6 +44,6 @@ private:
   int completedRCSOperations;
   double valuesRCS[3];
   double valuesDelta[3];
-  std::string operation;
-  std::string detail;
+  std::string operation = "";
+  std::string detail = "";
 };
