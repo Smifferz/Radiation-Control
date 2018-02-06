@@ -341,9 +341,21 @@ void NavAP::NavAPMain()
 
         }
         // Ensure the vessel is en-route to the destination
+        // Set the Normalised direction of the vessel
         VECTOR3 direction;
-        // Set the direction of the vessel
         setDir(&direction);
+
+        // Get the current heading of the vessel
+        VECTOR3 currentHeading;
+        getHeading(&currentHeading);
+
+        // Find the dot product
+        double dotHeading = dot(direction, currentHeading);
+
+        // Get the angle from the dot product
+        double angle = findAngleFromDot(dotHeading);
+
+
 
       }
     }
@@ -549,4 +561,9 @@ double NavAP::dot(VECTOR3 headingA, VECTOR3 headingB)
   return(headingA.x * headingB.x +
          headingA.y * headingB.y +
          headingA.z * headingB.z);
+}
+
+double NavAP::findAngleFromDot(double dot)
+{
+  return acos(dot);
 }
