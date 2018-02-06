@@ -336,11 +336,13 @@ void NavAP::NavAPMain()
           }
           std::cout << "Resetting the RCS thrusters" << std::endl;
           getchar();
-          
+
           // Can reset the RCS thrusters to 0 so the vessel moves in a straight line again
-          setBankSpeed(0);
-          setYawSpeed(0);
-          setPitchSpeed(0);
+          // setBankSpeed(0);
+          setPitch(0);
+          setRoll(0);
+          //setYawSpeed(0);
+          //setPitchSpeed(0);
         }
         // Ensure the vessel is en-route to the destination
 
