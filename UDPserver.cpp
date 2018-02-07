@@ -240,13 +240,11 @@ void UDPserver::test(std::string operation, std::string detail)
   std::string jsonbuffer = "{\"operation\":\"" + operation + "\",\"detail\":" + detail + "}";
   strcpy(buffer,jsonbuffer.c_str());
   // Request the data transaction from the client
-  printf("Requesting data from client....\n");
   if (debug) {
+    printf("Requesting data from client....\n");
     printf("Socket = %d\n", sockfd);
     printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
-  }
-  printf("Attempting to write to socket...\n");
-  if (debug) {
+    printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
@@ -278,13 +276,11 @@ void UDPserver::test(std::string operation, std::string detail, double *result)
   std::string jsonbuffer = "{\"operation\":\"" + operation + "\",\"detail\":" + detail + "}";
   strcpy(buffer,jsonbuffer.c_str());
   // Request the data transaction from the client
-  printf("Requesting data from client....\n");
   if (debug) {
+    printf("Requesting data from client....\n");
     printf("Socket = %d\n", sockfd);
     printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
-  }
-  printf("Attempting to write to socket...\n");
-  if (debug) {
+    printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
@@ -295,7 +291,8 @@ void UDPserver::test(std::string operation, std::string detail, double *result)
   // Read the contents of the message into the buffer
   n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
   if (n < 0) error("ERROR reading from socket");
-  printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+  if (debug)
+    printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
   // Store the data into the result vector using the array data interface
   *result = atof(buffer);
 }
@@ -323,11 +320,10 @@ void UDPserver::test(std::string operation, std::string detail, VECTOR3 *result)
   // Request the data transaction from the client
   printf("Requesting data from client....\n");
   if (debug) {
+    printf("Requesting data from client....\n");
     printf("Socket = %d\n", sockfd);
     printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
-  }
-  printf("Attempting to write to socket...\n");
-  if (debug) {
+    printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
@@ -340,9 +336,9 @@ void UDPserver::test(std::string operation, std::string detail, VECTOR3 *result)
     // Read the contents of the message into the buffer
     n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
     if (n < 0) error("ERROR reading from socket");
-    printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+    if (debug)
+      printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
     // Store the data into the result vector using the array data interface
     result->data[i] = atof(buffer);
-    std::cout << "result " << i << " = " << result->data[i] << std::endl;
   }
 }

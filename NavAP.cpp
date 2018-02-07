@@ -120,9 +120,17 @@ void NavAP::NavAPMain()
 
         // Find the global position of the vessel and possible collision object
         operation = "GET_POS";
+        detail = std::to_string(i);
         serverConnect->test(operation, detail, &nearObjPos);
         //serverConnect->perform_transfer(GET_POS, i, &nearObjPos);
 
+        // Get the new current position and store the old
+        for(int i = 0; i < NUMDIM; i++) {
+          oldPos.data[i] = currentPos.data[i];
+        }
+        operation = "GET_POS";
+        detail = "0";
+        serverConnect->test(operation,detail, &currentPos);
         // Find the direction vector by subtracting the previous vector position
         // from the new vector position
         double directionX = currentPos.x - oldPos.x;
@@ -134,6 +142,7 @@ void NavAP::NavAPMain()
         // detections can be calculated.
         double objSize = 0;
         operation = "GET_SIZE";
+        detail = std::to_string(i);
         serverConnect->test(operation, detail, &objSize);
         //serverConnect->perform_transfer(GET_SIZE, i, &objSize);
         RayBox *collisionCheck = new RayBox(nearObjPos, objSize);
@@ -203,34 +212,36 @@ void NavAP::NavAPMain()
             case 0:
               // Largest in the x axis, move along horizontal axis
               // Will require change in bank and roll
-              operation = "GET_BANK";
-              detail = "0";
-              serverConnect->test(operation, detail, &currentBank);
-              operation = "GET_YAW";
-              serverConnect->test(operation, detail, &currentYaw);
-              bankset = currentBank / 2;
-              std::cout << "\tbankset is " << bankset << std::endl;
-              yawset = currentYaw / 2;
-              if (bankset > 0.1) bankset = 0.1;
-              if (yawset > 0.1) yawset = 0.1;
-              setBankSpeed(bankset);
-              setYawSpeed(yawset);
+              //operation = "GET_BANK";
+              //detail = "0";
+              //serverConnect->test(operation, detail, &currentBank);
+              //operation = "GET_YAW";
+              //serverConnect->test(operation, detail, &currentYaw);
+              //bankset = currentBank / 2;
+              //std::cout << "\tbankset is " << bankset << std::endl;
+              //yawset = currentYaw / 2;
+              //if (bankset > 0.1) bankset = 0.1;
+              //if (yawset > 0.1) yawset = 0.1;
+              //setBankSpeed(bankset);
+              //setYawSpeed(yawset);
+              setRoll(0.08);
               completedRCSOperations = 3;
               break;
             case 1:
               // Largest in the y axis, move along vertical axis
               // Requires change in pitch and maybe roll
-              operation = "GET_PITCH";
-              serverConnect->test(operation, detail, &currentPitch);
-              operation = "GET_YAW";
-              serverConnect->test(operation, detail, &currentYaw);
-              pitchset = currentPitch / 2;
-              yawset = currentYaw / 2;
+              //operation = "GET_PITCH";
+              //serverConnect->test(operation, detail, &currentPitch);
+              //operation = "GET_YAW";
+              //serverConnect->test(operation, detail, &currentYaw);
+              //pitchset = currentPitch / 2;
+              //yawset = currentYaw / 2;
               // If the set values are larger than the max, set to max
-              if (pitchset > 0.1) pitchset = 0.1;
-              if (yawset > 0.1) yawset = 0.1;
-              setPitchSpeed(pitchset);
-              setYawSpeed(yawset);
+              //if (pitchset > 0.1) pitchset = 0.1;
+              //if (yawset > 0.1) yawset = 0.1;
+              //setPitchSpeed(pitchset);
+              //setYawSpeed(yawset);
+              setPitch(0.08);
               completedRCSOperations = 5;
               break;
           }
@@ -258,6 +269,10 @@ void NavAP::NavAPMain()
             // coordinates
             if (ifNewCollide)
             {
+              std::cout << "collision found on index " << i << std::endl;
+              for(int i =0 ; i <NUMDIM; i++) {
+                std::cout << "Position "<< i << " : " << currentPos.data[i] << std::endl;
+              }
               // Get collision coordinate
               newRay->findCollisionCoord(newRay->vessel_ray, newCollide);
 
@@ -281,12 +296,21 @@ void NavAP::NavAPMain()
             // If it does then continue on that path
             // While a collision occurs, keep going in that direction
             while(ifNewCollide) {
+              std::cout << "Subsequent collision found on index " << i << std::endl;
+
+              for(int i =0 ; i <NUMDIM; i++) {
+                std::cout << "Position "<< i << " : " << currentPos.data[i] << std::endl;
+              }
 
               setupNewRay(newRay, &currentPos);
 
               ifNewCollide = newRay->intersect(newRay->vessel_ray);
 
               if (!ifNewCollide) {
+                std::cout << "collision avoided" << std::endl;
+                for(int i =0 ; i <NUMDIM; i++) {
+                  std::cout << "Position "<< i << " : " << currentPos.data[i] << std::endl;
+                }
                 break;
               }
 
@@ -300,9 +324,12 @@ void NavAP::NavAPMain()
 
               // Store the old distance and get a new one
               prevDistance = nextDistance;
+              std::cout << "Previous distance was" << prevDistance << std::endl;
               nextDistance = getDistance(newDirection);
+              std::cout << "New distance is " << nextDistance << std::endl;
 
               if(nextDistance < prevDistance) {
+                std::cout << "Gaining proximity to object, reversing direction" << std::endl;
                 // Revert the thrusters to move in the opposite direction
                 // Should keep note of which thrusters were changed previously
                 // and revert them here
@@ -314,13 +341,15 @@ void NavAP::NavAPMain()
                   case 3:
                     // Perform the opposite operation to what has been
                     // done previously
-                    setBankSpeed((valuesDelta[0] * -1 ));
-                    setYawSpeed((valuesDelta[2] * -1));
+                    //setBankSpeed((valuesDelta[0] * -1 ));
+                    //setYawSpeed((valuesDelta[2] * -1));
+                    setRoll(-0.08);
                     completedRCSOperations = 0;
                     break;
                   case 5:
-                    setPitchSpeed((valuesDelta[1] * -1));
-                    setYawSpeed((valuesDelta[2] * -1));
+                    //setPitchSpeed((valuesDelta[1] * -1));
+                    //setYawSpeed((valuesDelta[2] * -1));
+                    setPitch(-0.08);
                     completedRCSOperations = 0;
                     break;
                   default:
@@ -329,30 +358,31 @@ void NavAP::NavAPMain()
                     break;
                 }
               }
+              std::cout << "Keeping course" << std::endl;
             }
           }
-
-          // Can reset the RCS thrusters to 0 so the vessel moves in a straight
-          // line again
-          setPitch(0);
-          setRoll(0);
-
         }
         // Ensure the vessel is en-route to the destination
 
         double relativeAngle = getRelativeHeadingAngle();
+        std::cout << "Current angle is " << relativeAngle << std::endl;
         // Determine if the relative angle is within appropriate limits
-        while(relativeAngle > 5 || relativeAngle < -5) {
-            if (relativeAngle > 180) {
+        while(relativeAngle > 0.17 || relativeAngle < -0.17) {
+            if (relativeAngle > PI) {
                 //TODO: Need to check if there is a getYaw() function
-                setYawSpeed(0.04);
+                setRoll(valuesDelta[0]);
             }
             else {
-                setYawSpeed(-0.04);
+                setRoll(-1*valuesDelta[0]);
             }
             // Check the current relative angle between the bearings
             relativeAngle = getRelativeHeadingAngle();
+            std::cout << "Current angle is " << relativeAngle << std::endl;
         }
+        // Can reset the RCS thrusters to 0 so the vessel moves in a straight
+        // line again
+        setPitch(0);
+        setRoll(0);
       }
     }
 }
@@ -450,6 +480,7 @@ void NavAP::setPitch(double pitch)
   detail = "0";
   std::cout << "Sending operation " << operation << " : " << detail << std::endl;
   serverConnect->test(operation, detail, &currentPitch);
+  std::cout << "Current pitch : " << currentPitch << std::endl;
   double deltaPitch = currentPitch - pitch;
   double pitchSpeed = deltaPitch * 0.1;
   if (pitchSpeed > 0.04) pitchSpeed = 0.04;
@@ -466,6 +497,7 @@ void NavAP::setRoll(double roll)
   detail = "0";
   std::cout << "Sending operation " << operation << " : " << detail << std::endl;
   serverConnect->test(operation, detail, &currentBank);
+  std::cout << "Current bank : " << currentBank << std::endl;
   double deltaBank = currentBank - roll;
   double bankSpeed = deltaBank * 0.1;
   if (bankSpeed > 0.04) bankSpeed = 0.04;
