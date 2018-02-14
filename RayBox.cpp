@@ -13,7 +13,7 @@
 // ==============================================================
 
 // Creates a box around the target object
-RayBox::RayBox(VECTOR3 centrePos, double radius)
+RayBox::RayBox(v3 centrePos, double radius)
 {
   // Setup geometry for bounding box
   box1.centre = centrePos;
@@ -31,7 +31,7 @@ RayBox::~RayBox()
 // Determine if the ray is going to intersect with the bounding box
 bool RayBox::intersect(Ray ray1)
 {
-  VECTOR3 hitCoord;
+  v3 hitCoord;
   char inside = true;	// assume the ray starts inside the box
   char quadrant[NUMDIM];
   register int i;
@@ -62,7 +62,7 @@ bool RayBox::intersect(Ray ray1)
   // Ray origin inside bounding box
   if (inside)
   {
-    hitCoord = ray1.origin;
+    collisionCoord = ray1.origin;
     return true;
   }
 
@@ -99,7 +99,7 @@ bool RayBox::intersect(Ray ray1)
 // the predicted collision coordinate and adjust the orientation
 // of the vessel to move in the appropriate direction away from
 // the obstacle.
-void RayBox::findCollisionCoord(Ray ray1, VECTOR3 impactCoord)
+void RayBox::findCollisionCoord(Ray ray1, v3 impactCoord)
 {
   getCollisionCoord(impactCoord);
 
@@ -155,7 +155,7 @@ void RayBox::findCollisionCoord(Ray ray1, VECTOR3 impactCoord)
 
 // Sets the impactCoord 3D vector to be equal to the collision
 // coordinate if the collision coordinate has been found
-void RayBox::getCollisionCoord(VECTOR3 impactCoord)
+void RayBox::getCollisionCoord(v3 impactCoord)
 {
   if (!isCoordFound)
   {

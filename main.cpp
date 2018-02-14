@@ -19,10 +19,7 @@ int main(int argc, char *argv[])
   NavAP *nav = new NavAP(debug);
   while (1) {
     if (nav->check_ping()) {
-        while(1) {
         nav->NavAPMain();
-        sleep(1);
-        }
     }
   }
   delete nav;

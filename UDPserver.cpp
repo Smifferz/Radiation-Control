@@ -120,7 +120,7 @@ void UDPserver::perform_transfer(int data, double info)
 // There is a seperate instance of this function
 // for every connection made. It handles the communication
 // once a connection has been established.
-void UDPserver::perform_transfer(int data, int info, VECTOR3 *result)
+void UDPserver::perform_transfer(int data, int info, v3 *result)
 {
   int n;
   cli_len = sizeof(cli_addr);
@@ -303,7 +303,7 @@ void UDPserver::test(std::string operation, std::string detail, double *result)
 // There is a seperate instance of this function
 // for every connection made. It handles the communication
 // once a connection has been established.
-void UDPserver::test(std::string operation, std::string detail, VECTOR3 *result)
+void UDPserver::test(std::string operation, std::string detail, v3 *result)
 {
   int n;
   cli_len = sizeof(cli_addr);
@@ -318,7 +318,7 @@ void UDPserver::test(std::string operation, std::string detail, VECTOR3 *result)
   std::string jsonbuffer = "{\"operation\":\"" + operation + "\",\"detail\":" + detail + "}";
   strcpy(buffer,jsonbuffer.c_str());
   // Request the data transaction from the client
-  printf("Requesting data from client....\n");
+  //printf("Requesting data from client....\n");
   if (debug) {
     printf("Requesting data from client....\n");
     printf("Socket = %d\n", sockfd);
