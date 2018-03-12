@@ -10,25 +10,25 @@ class RayBox
 {
 private:
 	struct Box {
-		VECTOR3 centre;
+		v3 centre;
 		double width;
 		double height;
 	} box1;	// Bounding box around target object
 	struct AABB {
-		VECTOR3 leftBot;	// Minimal coordinates
-		VECTOR3 rightTop;	// Maximal corner
+		v3 leftBot;	// Minimal coordinates
+		v3 rightTop;	// Maximal corner
 	};	// Axis-Aligned Bounding Box
-	VECTOR3 collisionCoord;
+	v3 collisionCoord;
 	bool isCoordFound = false;
 public:
-	RayBox(VECTOR3 centrePos, double radius);
+	RayBox(v3 centrePos, double radius);
 	~RayBox();
 	struct Ray {
-		VECTOR3 direction;
-		VECTOR3 origin;
+		v3 direction;
+		v3 origin;
 	} vessel_ray;
 	bool intersect(Ray ray1);
-	void findCollisionCoord(Ray ray1, VECTOR3 impactCoord);
-	void getCollisionCoord(VECTOR3 impactCoord);
+	void findCollisionCoord(Ray ray1, v3 impactCoord);
+	void getCollisionCoord(v3 impactCoord);
 
 };

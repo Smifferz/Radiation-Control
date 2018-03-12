@@ -3,20 +3,21 @@
 
 // ---------------- Navigation Autopilot -------------- //
 // Needs to be portable so as to perform the navigation //
-// calculations on FPGA and just send requests for		//
-// more information from the simulator.					//
+// calculations on FPGA and just send requests for	//
+// more information from the simulator.			//
 // ---------------------------------------------------- //
 
 #include "UDPserver.h"
+#include "RayBox.h"
 #include "types.h"
 #include <thread>
+#include <string>
 
 class NavAP
 {
 public:
   NavAP(int debug);
   void init();
-  VECTOR3 setNavDestination();
   void NavAPMain();
   void getActiveIndex(int vesselIndex);
   bool isCollision;
@@ -24,32 +25,48 @@ public:
   double progressThrust;
   bool check_ping();
 private:
+  void setNavDestination(v3 targetDest);
+  void getCurrentRotVel(v3 *currentRotVel);
   void setBankSpeed(double value);
   void setPitchSpeed(double value);
   void setYawSpeed(double value);
-  double setPitch(double pitch);
-  double setRoll(double roll);
-  double setDir(double dir);
-  void getDir(VECTOR3 dir);
-  double headingOld;
-  double distOld;
-  double dSimTime;
-  double simTimeOld;
-  double deltaVector;
-  double deltaVector_old;
-  double deltaVectorByTime;
-  double horz_speed_old;
-  double vert_speed_old;
-  double vert_speed_last_zycl;
-  double horzAcc;
-  double verAcc;
-  double HSSum[20][2];
-  double getDistance(VECTOR3 heading);
+  void setPitch(double pitch);
+  double getPitch();
+  void setRoll(double roll);
+  double getBank();
+  void setYaw(double yaw);
+  double getYaw();
+  void setDir(v3 *dir, bool normal);
+  double getDistance(v3 heading);
   double getRCSThrustByDelta(double deltaSpeed);
   double getAirspeedAngle();
+  void getHeading(v3 *heading, bool normal);
+  double dot(v3 headingA, v3 headingB);
+  double findAngleFromDot(double dot);
+  double getRelativeHeadingAngle();
+  double getComponentAngle(double adjacent, double hypotenuse);
+  void normalise(v3 normalVector, double vectorLength);
+  void setupNewRay(RayBox *newRay, v3 *currentPosition);
+  void stopThrust();
+  void collisionHandler(RayBox *collisionRay, v3 nearObjPos);
   int activeIndex;
-  VECTOR3 dest;
-  VECTOR3 currentPos;
-  VECTOR3 oldPos;
+  struct objectProperties {
+    v3 direction;
+    v3 currentPosition;
+    v3 previousPosition;
+    double length;
+  };
+  objectProperties dest;
+  objectProperties vessel;
   UDPserver *serverConnect;
+  int completedRCSOperations;
+  double valuesRCS[3];
+  double valuesDelta[3];
+  std::string operation = "";
+  std::string detail = "";
+  bool isYaw = false;
+  bool isPitch = false;
+  bool onCourse = false;
+  double countIterations = 0;
+  double objSize = 0;
 };
