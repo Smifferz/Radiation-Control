@@ -16,9 +16,9 @@ cd Radiation-Control
 make
 ./main
 ```
-The program can be run in debug mode by specifying  `--debug` in the command line and accepts an IP address
+The program can be run in debug mode by specifying  `--debug` in the command line.
 ```bash
-./main --debug 192.168.0.1
+./main --debug
 ```
 
 
