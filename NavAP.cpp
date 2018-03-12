@@ -22,7 +22,7 @@
 
 NavAP::NavAP(int debug)
 {
-  serverConnect = new UDPserver("158.125.48.27", debug);
+  serverConnect = new UDPserver("192.168.0.1", debug);
 }
 
 // Initialise the variables of the vessels
