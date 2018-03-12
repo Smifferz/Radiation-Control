@@ -37,12 +37,9 @@ public:
   ~UDPserver() { close(sockfd); close(newsocket); }
   void spawn_data_process(const char *data);
   bool check_ping();
-  void perform_transfer(int data, double info);
-  void perform_transfer(int data, int info, v3 *result);
-  void perform_transfer(int data, int info, double *result);
-  void test(std::string operation, std::string detail);
-  void test(std::string operation, std::string detail, v3 *result);
-  void test(std::string operation, std::string detail, double *result);
+  void transfer_data(std::string operation, std::string detail);
+  void transfer_data(std::string operation, std::string detail, v3 *result);
+  void transfer_data(std::string operation, std::string detail, double *result);
 private:
   int debug;
   void error(const char *msg) { perror(msg); exit(EXIT_FAILURE); }
