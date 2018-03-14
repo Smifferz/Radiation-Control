@@ -1,7 +1,7 @@
 all: main
 
-CXX=g++
-CXXFLAGS=-g -Wall -Wextra -std=c++11
+CXX=arm-linux-gnueabihf-g++
+CXXFLAGS=-g -H -Wall -Wextra -std=c++11
 
 main: main.o RayBox.o UDPserver.o NavAP.o
 
