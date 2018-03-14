@@ -28,4 +28,14 @@ fi
 
 cmake -D CMAKE_CXX_COMPILER=$TARGET -Bbuild -H. 
 
-
+#
+#CROSS-COMPILER=arm-linux-gnueabihf-
+#AOCL_COMPILE_CONFIG=$(shell aocl compile-config --arm)
+#AOCL_LINK_CONFIG=$(shell aocl link-config --arm)
+#
+#host_prog : host_prog.o
+#	$(CROSS-COMPILER)g++ -o host_prog host_prog.o $(AOCL_LINK_CONFIG)
+#
+#	host_prog.o : host_prog.cpp
+#		$(CROSS-COMPILER)g++ -c host_prog.cpp $(AOCL_COMPILE_CONFIG)
+#

@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef NAVAP_H
+#define NAVAP_H
 
 // ---------------- Navigation Autopilot -------------- //
 // Needs to be portable so as to perform the navigation //
@@ -70,3 +70,5 @@ private:
   double countIterations = 0;
   double objSize = 0;
 };
+
+#endif //NAVAP_H

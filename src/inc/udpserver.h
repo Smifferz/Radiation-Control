@@ -7,7 +7,8 @@
 // to be operated remotely
 // ==============================================================
 
-#pragma once
+#ifndef UDPSERVER_H
+#define UDPSERVER_H
 
 #include <stdio.h>
 #include<arpa/inet.h>
@@ -50,3 +51,5 @@ private:
   char buffer[BUFLEN];
   const char *serv_addr;
 };
+
+#endif //UDPSERVER_h

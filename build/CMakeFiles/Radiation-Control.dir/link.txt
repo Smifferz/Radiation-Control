@@ -1,1 +1,0 @@
-/home/elajs/intelFPGA/17.1/embedded/ds-5/sw/gcc/bin/arm-linux-gnueabihf-g++    -std=gnu++11    CMakeFiles/Radiation-Control.dir/src/navap.cpp.o CMakeFiles/Radiation-Control.dir/src/raybox.cpp.o CMakeFiles/Radiation-Control.dir/src/udpserver.cpp.o CMakeFiles/Radiation-Control.dir/src/main.cpp.o  -o bin/Radiation-Control -rdynamic 

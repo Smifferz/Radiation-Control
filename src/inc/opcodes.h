@@ -1,5 +1,7 @@
 // Define the codes for data transfer between
 // the nodes, host and remote
+#ifndef OPCODES_H
+#define OPCODES_H
 
 #define GET_POS 0
 #define GET_OBJ_COUNT 1
@@ -14,3 +16,5 @@
 #define SET_PITCH 10
 #define SET_BANK 11
 #define SET_YAW 12
+
+#endif //OPCODES_H

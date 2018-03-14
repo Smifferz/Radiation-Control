@@ -1,4 +1,6 @@
-#pragma once
+#ifndef RAYBOX_H
+#define RAYBOX_H
+
 #include "types.h"
 
 #define NUMDIM 3	// number of dimensions
@@ -32,3 +34,5 @@ public:
 	void getCollisionCoord(v3 impactCoord);
 
 };
+
+#endif //RAYBOX_H
