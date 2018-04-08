@@ -1,4 +1,8 @@
 #include "raybox.h"
+#include "parallel.h"
+
+
+#define BIN_PATH __FILE__ ".bin.tmp"
 
 // Fast Ray-Box Intersection
 
@@ -34,7 +38,7 @@ bool RayBox::intersect(Ray ray1)
   v3 hitCoord;
   char inside = true;	// assume the ray starts inside the box
   char quadrant[NUMDIM];
-  register int i;
+  int i;
   int whichPlane;
   double maxT[NUMDIM];
   double candidatePlane[NUMDIM];
@@ -63,7 +67,8 @@ bool RayBox::intersect(Ray ray1)
   if (inside)
   {
     collisionCoord = ray1.origin;
-    return true;
+    isCoordFound = true;
+    return isCoordFound;
   }
 
   // Calculate T distances to candidate planes
@@ -87,12 +92,72 @@ bool RayBox::intersect(Ray ray1)
     {
       hitCoord.data[i] = ray1.origin.data[i] + maxT[whichPlane] * ray1.direction.data[i];
       if (hitCoord.data[i] < (box1.centre.data[i] - (box1.width / 2)) || hitCoord.data[i] > (box1.centre.data[i] + (box1.width / 2)))
-        return false;
+        collisionCoord = hitCoord;
+        isCoordFound = false;
+        return isCoordFound;
     }
     else
       hitCoord.data[i] = candidatePlane[i];
   }
-  return true;
+  collisionCoord = hitCoord;
+  isCoordFound = true;
+  return isCoordFound;
+}
+
+int RayBox::rayOpenCL(Ray ray1)
+{
+  Parallel parallel;
+  FILE* f;
+  char* binary, *source_path;
+  cl_int input[] = {1, 2}, errcode_ret, binary_status;
+  cl_kernel kernel;    
+  cl_mem buffer;       
+  cl_program program;   
+  const size_t global_work_size = sizeof(input) / sizeof(input[0]);
+  long length;
+  size_t binary_size;
+  source_path = "rayintersect.cl";
+  
+  /* Get the binary and create a kernel with it */
+  parallel_init_file(&parallel, source_path);
+  clGetProgramInfo(parallel.program, CL_PROGRAM_BINARY_SIZES, sizeof(size_t), &binary_size, NULL);
+  binary = new char [binary_size];
+  clGetProgramInfo(parallel.program, CL_PROGRAM_BINARIES, binary_size, &binary, NULL);
+  f = fopen(BIN_PATH, "w");
+  fwrite(binary, binary_size, 1, f);
+  fclose(f);
+
+  program = clCreateProgramWithBinary(
+    parallel.context, 1, &parallel.device, &binary_size,
+    (const unsigned char **)&binary, &binary_status, &errcode_ret
+  );
+  assert(NULL != program);
+  parallel_assert_success(binary_status);
+  parallel_assert_success(errcode_ret);
+  free(binary);
+  parallel_build_program(&parallel, NULL, &program);
+  kernel = clCreateKernel(program, "kmain", &errcode_ret);
+  assert(NULL != kernel);
+  parallel_assert_success(errcode_ret);
+
+  /* Run the kernel created from the binary */
+  buffer = clCreateBuffer(parallel.context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, sizeof(input), input, NULL);
+  clSetKernelArg(kernel, 0, sizeof(buffer), &buffer);
+  clEnqueueNDRangeKernel(parallel.command_queue, kernel, 1, NULL, &global_work_size, NULL, 0, NULL, NULL);
+  clFlush(parallel.command_queue);
+  clFinish(parallel.command_queue);
+  clEnqueueReadBuffer(parallel.command_queue, buffer, CL_TRUE, 0, sizeof(input), input, 0, NULL, NULL);
+
+  /* Assertions */
+  assert(input[0] == 2);
+  assert(input[1] == 3);
+
+  /* Cleanup */
+  clReleaseKernel(kernel);
+  clReleaseProgram(program);
+  clReleaseMemObject(buffer);
+  parallel_deinit(&parallel);
+  return EXIT_SUCCESS;
 }
 
 // Once we know there is a collision on the path, we can calculate
@@ -106,7 +171,7 @@ void RayBox::findCollisionCoord(Ray ray1, v3 impactCoord)
   // No longer care about whether the vessel is inside the collision object
   // due to the fact we already know a collision is present
   char quadrant[NUMDIM];
-  register int i;
+  int i;
   int whichPlane;
   double maxT[NUMDIM];
   double candidatePlane[NUMDIM];
