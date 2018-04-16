@@ -1,7 +1,11 @@
+#include <iostream>
+#include <vector>
 #include "raybox.h"
 #include "parallel.h"
+#include <fstream>
+#include <string>
 
-
+#include <CL/cl.hpp>
 #define BIN_PATH __FILE__ ".bin.tmp"
 
 // Fast Ray-Box Intersection
@@ -160,6 +164,88 @@ int RayBox::rayOpenCL(Ray ray1)
   return EXIT_SUCCESS;
 }
 
+
+bool RayBox::intersectOpenCL(Ray ray1)
+{
+	// get all platforms (drivers)
+	std::vector<cl::Platform> all_platforms;
+	cl::Platform::get(&all_platforms);
+	if(all_platforms.size() == 0) {
+		std::cout << "No platforms found. Check OpenCL installation!\n";
+		std::cout << "Starting default detector..." << "\n";                                                  
+		intersect(ray1);
+	}
+	cl::Platform default_platform = all_platforms[0];
+	std::cout << "Using platform:" << default_platform.getInfo<CL_PLATFORM_NAME>()<<"\n";
+
+	// get default device of the default platform
+	std::vector<cl::Device> all_devices;
+	default_platform.getDevices(CL_DEVICE_TYPE_ALL, &all_devices);
+	if (all_devices.size() == 0) {
+		std::cout << "No devices found. Check OpenCL installation!\n";
+		std::cout << "Starting default detector..." << "\n";
+		intersect(ray1);
+	}
+	cl::Device default_device = all_devices[0];
+	std::cout << "Using device: " << default_device.getInfo<CL_DEVICE_NAME>() << "\n";
+
+
+	cl::Context context({default_device});
+
+	cl::Program::Sources sources;
+
+	// read in the kernel and store its contents in a string
+	std::ifstream ifs("rayintersect.cl");
+	std::string kernel_content( (std::istreambuf_iterator<char>(ifs) ),
+						 (std::istreambuf_iterator<char>()	  ) );
+
+	sources.push_back({kernel_content.c_str(), kernel_content.length()});
+
+	cl::Program program(context, sources);
+	if (program.build({default_device}) != CL_SUCCESS) {
+		std::cout << "Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(default_device) << "\n";
+		std::cout << "Starting default detector..." << "\n";                                                  
+        intersect(ray1);
+	}
+
+	
+	// create buffers on the device
+	cl::Buffer buffer_origin_data(context, CL_MEM_READ_WRITE, sizeof(double)*3);
+	cl::Buffer buffer_direction(context, CL_MEM_READ_WRITE, sizeof(double)*3);
+	cl::Buffer buffer_box_centre(context, CL_MEM_READ_WRITE, sizeof(double)*3);
+	cl::Buffer buffer_box_width(context, CL_MEM_READ_WRITE, sizeof(double));
+	cl::Buffer buffer_collision_data(context, CL_MEM_READ_WRITE, sizeof(double)*3);
+	cl::Buffer buffer_impact(context, CL_MEM_READ_WRITE, sizeof(char));
+	cl::Buffer buffer_inside(context, CL_MEM_READ_WRITE, sizeof(char));
+
+	cl::CommandQueue queue(context, default_device);
+
+	// write values to device
+	queue.enqueueWriteBuffer(buffer_origin_data, CL_TRUE, 0, sizeof(double)*3, ray1.origin.data);
+	queue.enqueueWriteBuffer(buffer_direction, CL_TRUE, 0, sizeof(double)*3, ray1.direction.data);
+	queue.enqueueWriteBuffer(buffer_box_centre, CL_TRUE, 0, sizeof(double)*3, box1.centre.data);
+	queue.enqueueWriteBuffer(buffer_box_width, CL_TRUE, 0, sizeof(double), &box1.width);
+	
+
+	// run the kernel
+	cl::KernelFunctor ray_intersect(cl::Kernel(program, "ray_intersect"), queue, cl::NullRange, cl::NDRange(3), cl::NullRange);
+	ray_intersect(buffer_origin_data, buffer_direction, buffer_box_centre, buffer_box_width, buffer_collision_data, buffer_impact, buffer_inside);
+
+	char inside;
+	// read results from the device
+	queue.enqueueReadBuffer(buffer_collision_data, CL_TRUE, 0, sizeof(double)*3, collisionCoord.data);
+	queue.enqueueReadBuffer(buffer_impact, CL_TRUE, 0, sizeof(char), &isCoordFound);
+	queue.enqueueReadBuffer(buffer_inside, CL_TRUE, 0, sizeof(char), &inside);
+
+	std::cout << "Result: \n";
+	for(int i =0; i < 3; i++) {
+		std::cout << collisionCoord.data[i] << " ";
+	}
+	std::cout << "\ninside: " << inside;
+	std::cout << "\nimpact: " << isCoordFound;
+
+	return isCoordFound;
+}
 // Once we know there is a collision on the path, we can calculate
 // the predicted collision coordinate and adjust the orientation
 // of the vessel to move in the appropriate direction away from
