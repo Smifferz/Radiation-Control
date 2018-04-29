@@ -13,10 +13,13 @@ AOCL_LINK_CONFIG=$(shell aocl link-config --arm)
 
 SOURCE_DIR = src
 INCLUDE_DIR = $(SOURCE_DIR)/inc
+COMMON_DIR = $(SOURCE_DIR)/common/src/AOCLUtils
+COMMON_INC = $(SOURCE_DIR)/common/inc
 BUILD_DIR = build
 BIN_DIR = $(BUILD_DIR)/bin
 
 SOURCE_FILES = $(wildcard $(SOURCE_DIR)/*.cpp)
+SOURCE_FILES += $(wildcard $(COMMON_DIR)/*.cpp)
 INCLUDE_FILES = $(wildcard $(INCLUDE_DIR)/*.h)
 EXECUTABLE_FILES = $(EXECUTABLE:%=$(BIN_DIR)/%)
 OBJECT_FILES = $(SOURCE_FILES:%.cpp=$(BUILD_DIR)/%.o)
@@ -38,4 +41,5 @@ $(EXECUTABLE_FILES):	$(OBJECT_FILES)
 $(OBJECT_FILES):	$(BUILD_DIR)/%.o:	%.cpp
 	@echo Compiling $<
 	@mkdir -p $(@D)
-	@$(CXX) -c $(CXXFLAGS) -I$(INCLUDE_DIR) -o $@ $< $(AOCL_COMPILE_CONFIG)
+	@$(CXX) -c $(CXXFLAGS) -I$(INCLUDE_DIR) -I$(COMMON_INC) -o $@ $< $(AOCL_COMPILE_CONFIG)
+

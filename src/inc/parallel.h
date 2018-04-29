@@ -8,9 +8,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <vector>
 
 //#define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 #include "CL/cl.h"
+#include "AOCLUtils/aocl_utils.h"
+
+
+using namespace aocl_utils;
 
 /* Encapsulates objects that we use the same on most programs.
  * This excludes, notably, buffers. */
@@ -27,35 +36,48 @@ void parallel_assert_success(cl_int ret) {
 }
 
 char* parallel_read_file(const char* path, long* length_out) {
-    char* buffer;
-    FILE* f;
-    long length;
+  //char* buffer;
+  //FILE* f;
+  //long length;
 
-    f = fopen(path, "r");
-    assert(NULL != f);
-    fseek(f, 0, SEEK_END);
-    length = ftell(f);
-    fseek(f, 0, SEEK_SET);
-    buffer = new char [length];
-    if (fread(buffer, 1, length, f) < (size_t)length) {
-        return NULL;
-    }
-    fclose(f);
-    if (NULL != length_out) {
-        *length_out = length;
-    }
-    return buffer;
+  //f = fopen(path, "r");
+  //assert(NULL != f);
+  //fseek(f, 0, SEEK_END);
+  //    length = ftell(f);
+  //    fseek(f, 0, SEEK_SET);
+  //  buffer = new char [length];
+  //  if (fread(buffer, 1, length, f) < (size_t)length) {
+  //      return NULL;
+  //  }
+  //  fclose(f);
+  //  if (NULL != length_out) {
+  //      *length_out = length;
+  //  }
+  std::cout << "Path: " << path << std::endl;
+  std::string buffer;
+  std::string filepath(path);
+  std::ifstream ifs(filepath);
+  if (ifs.is_open()) {
+    std::stringstream line;
+    line << ifs.rdbuf();
+    buffer.append(line.str());
+  }
+  char* cstr = new char[buffer.length() + 1];
+  strcpy(cstr, buffer.c_str());
+  *length_out = buffer.length();
+  return cstr;
 }
 
 char* parallel_read_file_null(const char* path) {
     char* f, *f_tmp;
     long length;
     f_tmp = parallel_read_file(path, &length);
-    f = new char [length+1];
+    std::cout << "f_tmp: " << f_tmp << std::cout;
+    f = new char[length+1];
     *f = *f_tmp;
     delete []f_tmp;
     f[length] = '\0';
-    return f;
+    return f_tmp;
 }
 
 void parallel_build_program(
@@ -67,6 +89,7 @@ void parallel_build_program(
     cl_int ret;
     size_t err_len;
     ret = clBuildProgram(*program, 1, &(parallel->device), options, NULL, NULL);
+    std::cout << "Build return: " << ret << std::endl;
     if (CL_SUCCESS != ret) {
         clGetProgramBuildInfo(*program, parallel->device, CL_PROGRAM_BUILD_LOG, 0, NULL, &err_len);
         err = new char [err_len];
@@ -141,6 +164,7 @@ void parallel_init_file_options(
 ) {
     char* source;
     source = parallel_read_file_null(source_path);
+    printf("Source: %s\n", source);
     parallel_init_options(parallel, source, options);
     free(source);
 }

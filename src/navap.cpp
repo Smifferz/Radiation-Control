@@ -23,16 +23,15 @@
 NavAP::NavAP(int debug)
 {
   serverConnect = new UDPserver("169.254.87.118", debug);
+  debugID = debug;
 }
 
-// Initialise the variables of the vessels
-// present in the simulation
+/**
+ * Initialise the variables of the vessels present in the simulation
+ * @brief Initialise vessel variables
+ */
 void NavAP::init()
 {
-  //simTimeOld = 0;
-  //horz_speed_old = 0;
-  //vert_speed_old = 0;
-  //dSimTime = 0;
   for (int i = 0; i < NUMDIM; i++) {
     vessel.currentPosition.data[i] = 0;
     vessel.previousPosition.data[i] = 0;
@@ -51,6 +50,10 @@ void NavAP::init()
 
 }
 
+/**
+ * Initial ping check between client/server to ensure connection can be made
+ * @brief Check for connection
+ */
 bool NavAP::check_ping()
 {
   if(serverConnect->check_ping()) {
@@ -61,9 +64,17 @@ bool NavAP::check_ping()
   return false;
 }
 
-// Main loop for the automated navigation system
+/**
+ * Main loop to perform navigation techniques and call appropriate functions
+ * @brief Main navigation loop
+ */
 void NavAP::NavAPMain()
 {
+  if (debugID) {
+    std::cout << "Running in debug mode" << std::endl;
+  } else {
+    std::cout << "Running in normal mode" << std::endl;
+  }
   // get the position of the vessel
   operation = "GET_POS";
   detail = "0";
@@ -72,7 +83,8 @@ void NavAP::NavAPMain()
   // Set the main thrusters
   operation = "SET_THRUST";
   detail = "1";
-  serverConnect->transfer_data(operation, detail);
+  int thrustCheck;
+  serverConnect->transfer_data(operation, detail, &thrustCheck);
 
   // while the vessel isn't at the destination
   while (!((vessel.currentPosition.x < dest.currentPosition.x + 5) && (vessel.currentPosition.x > dest.currentPosition.x - 5) &&
@@ -80,21 +92,23 @@ void NavAP::NavAPMain()
            (vessel.currentPosition.z < dest.currentPosition.z + 5) && (vessel.currentPosition.z > dest.currentPosition.z - 5)))
   {
     // count the objects currently in the rendered simulation area
-    double num_obj = 0;
+    int num_obj = 0;
     operation = "GET_OBJ_COUNT";
     serverConnect->transfer_data(operation, detail, &num_obj);
 
-    //std::cout << "The number of objects is " << num_obj << std::endl;
+    if (debugID) {
+      std::cout << "The number of objects is " << num_obj << std::endl;
+    }
     for (int obj_it = 0; obj_it < num_obj; obj_it++)
     {
-      double is_sim = 0;
+      int is_sim = 0;
       operation = "IS_VESSEL";
       detail = std::to_string(obj_it);
       serverConnect->transfer_data(operation, detail, &is_sim);
 
-
-
-      if (is_sim == 1.) return;
+      if (is_sim == 1) {
+	return;
+      }
 
       // Find the global position of the vessel and possible collision object
       v3 nearObjPos;
@@ -134,7 +148,11 @@ void NavAP::NavAPMain()
 
 
       // Check if there is a collision object on the current path
-      bool ifCollide = collisionCheck->intersectOpenCL(collisionCheck->vessel_ray);
+      if (debugID) {
+	std::cout << "Checking collision..." << std::endl;
+      }
+      
+      bool ifCollide = collisionCheck->rayOpenCL(collisionCheck->vessel_ray, 1);
 
       isCollision = ifCollide;
       if (ifCollide)
@@ -283,7 +301,11 @@ void NavAP::NavAPMain()
 
 
 
-// Store an input vector into the destination vector
+/**
+ * Store an input coordinate vector into the destination vector
+ * @brief Set navigation destination
+ * @param targetDest v3 representation of destination coordinates
+ */
 void NavAP::setNavDestination(v3 targetDest)
 {
   for(int i = 0; i < 3; i++) {
@@ -291,8 +313,11 @@ void NavAP::setNavDestination(v3 targetDest)
   }
 }
 
-// Get the airspeed angle using oapiGetAirspeedVector
-// and return angle
+/**
+ * Get the airspeed angle using oapiGetAirspeedVector
+ * @brief Get current airspeed angle
+ * @return angle in radians
+ */
 double NavAP::getAirspeedAngle()
 {
   v3 speedVector;
@@ -311,6 +336,11 @@ double NavAP::getAirspeedAngle()
   return -1;
 }
 
+/**
+ * Get the current rotational velocity of vessel
+ * @brief Get current rotational velocity
+ * @param *currentRotVel Pointer to the v3 variable to store the result
+ */
 void NavAP::getCurrentRotVel(v3 *currentRotVel)
 {
   std::string operation = "GET_ANG_VEL";
@@ -318,8 +348,11 @@ void NavAP::getCurrentRotVel(v3 *currentRotVel)
   serverConnect->transfer_data(operation, detail, currentRotVel);
 }
 
-// Set the bank speed using the angular velocity of the vessel
-// to set the thrusters in a given direction
+/**
+ * Set the bank speed using the angular velocity of the vessel to set the thrusters in a given direction
+ * @brief Set the bank speed
+ * @param value Bank velocity
+ */
 void NavAP::setBankSpeed(double value)
 {
   v3 currentRotVel;
@@ -336,8 +369,11 @@ void NavAP::setBankSpeed(double value)
   valuesDelta[0] = deltaVel;
 }
 
-// Set the pitch speed using the angular velocity of the vessel
-// to set the thrusters in a given direction
+/**
+ * Set the pitch speed using the angular velocity of the vessel to set the thrusters in a given direction
+ * @brief Set the pitch speed
+ * @param value Pitch velocity
+ */
 void NavAP::setPitchSpeed(double value)
 {
   v3 currentRotVel;
@@ -354,8 +390,11 @@ void NavAP::setPitchSpeed(double value)
   valuesDelta[1] = deltaVel;
 }
 
-// Set the yaw speed using the angular velocity of the vessel
-// to set the thrusters in a given direction
+/**
+ *  Set the yaw speed using the angular velocity of the vessel *to set the thrusters in a given direction
+ * @brief Set the yaw speed
+ * @param value Yaw velocity
+ */
 void NavAP::setYawSpeed(double value)
 {
   v3 currentRotVel;
@@ -372,7 +411,11 @@ void NavAP::setYawSpeed(double value)
   valuesDelta[2] = deltaVel;
 }
 
-// Set pitch of vessel relative to previous pitch
+/**
+ * Set pitch of vessel relative to previous pitch
+ * @brief Set pitch
+ * @param pitch Pitch to set
+ */
 void NavAP::setPitch(double pitch)
 {
   if (pitch > 1.5) pitch = 1.5;
@@ -390,6 +433,11 @@ void NavAP::setPitch(double pitch)
   setPitchSpeed(-pitchSpeed);
 }
 
+/**
+ * Get the current pitch of vessel
+ * @brief Get current pitch
+ * @return Current pitch of vessel
+ */
 double NavAP::getPitch()
 {
   double currentPitch;
@@ -400,7 +448,11 @@ double NavAP::getPitch()
   return currentPitch;
 }
 
-// Set roll of vessel relative to previous bank
+/**
+ *  Set roll of vessel relative to previous bank
+ * @brief Set roll
+ * @param roll Roll to set
+ */
 void NavAP::setRoll(double roll)
 {
   roll = -roll;
@@ -417,6 +469,11 @@ void NavAP::setRoll(double roll)
   setBankSpeed(bankSpeed);
 }
 
+/**
+ * Get the current bank of vessel
+ * @brief Get current bank
+ * @return Current bank of vessel
+ */
 double NavAP::getBank()
 {
   double currentBank;
@@ -426,7 +483,11 @@ double NavAP::getBank()
   return currentBank;
 }
 
-
+/**
+ * Get the current yaw of vessel
+ * @brief Get current yaw
+ * @return Current yaw of vessel
+ */
 double NavAP::getYaw()
 {
   double currentYaw;
@@ -436,7 +497,11 @@ double NavAP::getYaw()
   return currentYaw;
 }
 
-// Set yaw of vessel relative to previous yaw
+/**
+ * Set yaw of vessel relative to previous yaw
+ * @brief Set yaw
+ * @param yaw Yaw to set
+ */
 void NavAP::setYaw(double yaw)
 {
   if (yaw > 1.5) yaw = 1.5;
@@ -454,7 +519,12 @@ void NavAP::setYaw(double yaw)
   setYawSpeed(yawSpeed);
 }
 
-// Returns the normalised direction to the set target
+/**
+ * Set the direction of the vessel
+ * @brief Set direction 
+ * @param *dir Pointer to direction vector to write to
+ * @param normal Specify if normalized direction is required
+ */
 void NavAP::setDir(v3 *dir, bool normal)
 {
   v3 vesselPos;
@@ -478,7 +548,12 @@ void NavAP::setDir(v3 *dir, bool normal)
   *dir = direction;
 }
 
-// Returns the normalised direction of the current heading
+/**
+ * Get the current heading of vessel
+ * @brief Get current heading
+ * @param *heading Pointer to heading vector to write to
+ * @param normal Specify if normalized heading is required
+ */
 void NavAP::getHeading(v3 *heading, bool normal)
 {
   // Store previous current position
@@ -503,7 +578,12 @@ void NavAP::getHeading(v3 *heading, bool normal)
   }
 }
 
-// Get the distance from the vessel to the target position
+/**
+ * Get the distance from the vessel to the target position
+ * @brief Get Distance to target
+ * @param heading Current heading of vessel
+ * @return The distance along the heading to target
+ */
 double NavAP::getDistance(v3 heading)
 {
   float power = 2.0;
@@ -515,7 +595,12 @@ double NavAP::getDistance(v3 heading)
 }
 
 
-// Perform the setup for a new ray collision calculation
+/**
+ * Perform the setup for a new ray collision calculation
+ * @brief Setup a new ray
+ * @param *ray Pointer to RayBox object
+ * @param *currentPosition Pointer to position vector to write to
+ */
 void NavAP::setupNewRay(RayBox *ray, v3 *currentPosition)
 {
   // Store the previous position to an old position
@@ -541,8 +626,13 @@ void NavAP::setupNewRay(RayBox *ray, v3 *currentPosition)
   ray->vessel_ray.direction.z = newZDirection;
 }
 
-// Perform the dot product on the input vectors and return
-// the result
+/**
+ * Perform the dot product on the input vectors and return the result
+ * @brief Perform dot product
+ * @param headingA First input heading
+ * @param headingB Second input heading
+ * @return The dot product of the two headings
+ */
 double NavAP::dot(v3 headingA, v3 headingB)
 {
   return(headingA.x * headingB.x +
@@ -550,13 +640,22 @@ double NavAP::dot(v3 headingA, v3 headingB)
          headingA.z * headingB.z);
 }
 
-// Find the angle from the dot product of two vectors
+/**
+ * Find the angle from the dot product of two vectors
+ * @brief Find angle from dot product
+ * @param dot Output of dot product
+ * @return Angle from dot product
+ */
 double NavAP::findAngleFromDot(double dot)
 {
   return acos(dot);
 }
 
-// Get the relative heading between two 3D vectors
+/**
+ * Get the relative heading between vessel and destination
+ * @brief Get relative heading
+ * @return Relative heading angle
+ */
 double NavAP::getRelativeHeadingAngle()
 {
   // Set the Normalised direction of the vessel
@@ -576,19 +675,35 @@ double NavAP::getRelativeHeadingAngle()
   return angle;
 }
 
-// Normalise a vector
-void NavAP::normalise(v3 normalVector, double vectorLength)
+/**
+ * Perform normalisation to a vector
+ * @brief Normalise a vector
+ * @param normalVector Pointer to vector to normalise
+ * @param vectorLength Length of input vector
+ */
+void NavAP::normalise(v3* normalVector, double vectorLength)
 {
   for(int i = 0; i < NUMDIM; i++) {
-    normalVector.data[i] = normalVector.data[i] / vectorLength;
+  normalVector->data[i] = normalVector->data[i] / vectorLength;
   }
 }
 
+/**
+ * Get the component angle between incident vector lengths
+ * @brief Get component angle between two lengths
+ * @param adjacent Adjacent length
+ * @param hypotenuse Longest length
+ * @return The component angle to input lengths
+ */
 double NavAP::getComponentAngle(double adjacent, double hypotenuse)
 {
   return acos(adjacent/hypotenuse);
 }
 
+/**
+ * Stop the thrusters of the vessel
+ * @brief Stop thrusters
+ */
 void NavAP::stopThrust()
 {
   operation = "STOP_THRUST";
@@ -597,6 +712,12 @@ void NavAP::stopThrust()
   serverConnect->transfer_data(operation,detail, &thrust);
 }
 
+/**
+ * Collision handler to handle possible incoming collisions
+ * @brief Determine collisions
+ * @param *collisionCheck Pointer to RayBox object
+ * @param nearObjPos Position vector of nearby object
+ */
 void NavAP::collisionHandler(RayBox *collisionCheck, v3 nearObjPos)
 {
   // Create 3D vector for position of collision coordinate
@@ -698,7 +819,7 @@ void NavAP::collisionHandler(RayBox *collisionCheck, v3 nearObjPos)
     // Distance to collision
     double prevDistance;
     double nextDistance;
-    bool ifNewCollide = newRay->intersectOpenCL(newRay->vessel_ray);
+    bool ifNewCollide = newRay->rayOpenCL(newRay->vessel_ray, 1);
     // If an intersection takes place, determine the collision
     // coordinates
     if (ifNewCollide)
@@ -735,7 +856,7 @@ void NavAP::collisionHandler(RayBox *collisionCheck, v3 nearObjPos)
 
       setupNewRay(newRay, &vessel.currentPosition);
 
-      ifNewCollide = newRay->intersectOpenCL(newRay->vessel_ray);
+      ifNewCollide = newRay->rayOpenCL(newRay->vessel_ray, 1);
 
       if (!ifNewCollide) {
         std::cout << "collision avoided" << std::endl;

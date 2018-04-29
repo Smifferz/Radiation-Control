@@ -13,6 +13,11 @@
 #include <thread>
 #include <string>
 
+
+/**
+ * The NavAP class controls the navigation autopilot for remote navigation
+ * @brief The class that performs navigation
+ */
 class NavAP
 {
 public:
@@ -45,7 +50,7 @@ private:
   double findAngleFromDot(double dot);
   double getRelativeHeadingAngle();
   double getComponentAngle(double adjacent, double hypotenuse);
-  void normalise(v3 normalVector, double vectorLength);
+  void normalise(v3* normalVector, double vectorLength);
   void setupNewRay(RayBox *newRay, v3 *currentPosition);
   void stopThrust();
   void collisionHandler(RayBox *collisionRay, v3 nearObjPos);
@@ -69,6 +74,7 @@ private:
   bool onCourse = false;
   double countIterations = 0;
   double objSize = 0;
+  int debugID;
 };
 
 #endif //NAVAP_H

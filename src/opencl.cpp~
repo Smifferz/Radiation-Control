@@ -1,0 +1,9 @@
+#include "opencl.h"
+
+OpenCL::OpenCL()
+{
+  platform = NULL;
+  context = NULL;
+  program = NULL;
+  num_devices = 0;
+}

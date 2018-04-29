@@ -107,6 +107,46 @@ void UDPserver::transfer_data(std::string operation, std::string detail)
 
 
 
+
+// There is a seperate instance of this function
+// for every connection made. It handles the communication
+// once a connection has been established.
+void UDPserver::transfer_data(std::string operation, std::string detail, int *result)
+{
+  int n;
+  cli_len = sizeof(cli_addr);
+
+  // By default zero the buffer
+  bzero(buffer, BUFLEN);
+  memset(&buffer, 0, sizeof(buffer));
+
+  // If the size of the data is greater than zero,
+  // copy into the buffer
+  // Build up the JSON string
+  std::string jsonbuffer = "{\"operation\":\"" + operation + "\",\"detail\":" + detail + "}";
+  strcpy(buffer,jsonbuffer.c_str());
+  // Request the data transaction from the client
+  if (debug) {
+    printf("Requesting data from client....\n");
+    printf("Socket = %d\n", sockfd);
+    printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
+    printf("Attempting to write to socket...\n");
+    std::cout << "Writing data value : " << buffer << " to client" << std::endl;
+  }
+  n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+  if (n < 0) error("ERROR writing to socket");
+
+  // zero the buffer again
+  bzero(buffer, BUFLEN);
+  // Read the contents of the message into the buffer
+  n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+  if (n < 0) error("ERROR reading from socket");
+  if (debug)
+    printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
+  // Store the data into the result vector using the array data interface
+  *result = atof(buffer);
+}
+
 // There is a seperate instance of this function
 // for every connection made. It handles the communication
 // once a connection has been established.

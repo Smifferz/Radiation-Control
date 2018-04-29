@@ -30,8 +30,8 @@ public:
 		v3 origin;
 	} vessel_ray;
 	bool intersect(Ray ray1);
-	bool intersectOpenCL(Ray ray1);
-	int rayOpenCL(Ray ray1);
+	bool intersectOpenCL(Ray ray1, int debug);
+	int rayOpenCL(Ray ray1, int debug);
 	void findCollisionCoord(Ray ray1, v3 impactCoord);
 	void getCollisionCoord(v3 impactCoord);
 

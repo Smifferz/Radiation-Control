@@ -40,6 +40,7 @@ public:
   bool check_ping();
   void transfer_data(std::string operation, std::string detail);
   void transfer_data(std::string operation, std::string detail, v3 *result);
+  void transfer_data(std::string operation, std::string detail, int *result);
   void transfer_data(std::string operation, std::string detail, double *result);
 private:
   int debug;

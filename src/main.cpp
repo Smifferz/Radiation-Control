@@ -17,6 +17,7 @@ int main(int argc, char *argv[])
   }
 
   NavAP *nav = new NavAP(debug);
+  std::cout << "Navigation initialised" << std::endl;
   while (1) {
     if (nav->check_ping()) {
         nav->NavAPMain();
