@@ -74,9 +74,9 @@ bool OpenCL::init_opencl()
 #if USE_SVM_API == 0
     // Input buffers
     // get the number of input buffers
-    unsigned num_inputs = inputs.size();
+    unsigned num_inputs = input_bufs.size();
     for(unsigned x = 0; x < num_inputs; x++) {
-      inputs[x][i] = clCreateBuffer(context, CL_MEM_READ_ONLY,
+      input_bufs[x][i] = clCreateBuffer(context, CL_MEM_READ_ONLY,
 				    n_per_device[i] * sizeof(float), NULL, &status);
       std::string error_msg = "Failed to create buffer for input" + std::to_string(i);
       checkError(status, error_msg.c_str());
@@ -84,9 +84,9 @@ bool OpenCL::init_opencl()
 
     // Output buffers
     // Get the number of output buffers
-    unsigned num_outputs = outputs.size();
+    unsigned num_outputs = output_bufs.size();
     for(unsigned x = 0; x < num_outputs; x++) {
-      outputs[x][i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
+      output_bufs[x][i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
 				      n_per_device[i] * sizeof(float), NULL, &status);
       std::string error_msg = "Failed to create buffer for output" + std::to_string(i);
       checkError(status, error_msg.c_str());
@@ -123,10 +123,36 @@ void OpenCL::init_problem()
     checkError(-1, "No devices");
   }
   
+  // get number of inputs
+  unsigned num_inputs = inputs.size();
+  for (unsigned i = 0; i < num_inputs; i++) {
+	  inputs[i].reset(num_devices);
+  }
+ // get number of outputs
+ unsigned num_outputs = outputs.size();
+ for (unsigned i = 0; i < num_outputs; i++) {
+	 outputs[i].reset(num_devices);
+ }
+
+ // Generate inputs vectors and the reference output consisting of 
+ // a total of N elements.
+ // We create seperate arrays for each device dso that each device 
+ // has an aligned buffer.
+ for (unsigned i = 0; i < num_devices; ++i) {
+#if USE_SVM_API == 0
+	for(unsigned x = 0; x < num_inputs; x++) {
+		inputs[x][i].reset(n_per_device[i]);
+	}
+	for (unsigned x = 0; x < num_outputs; x++) {
+		outputs[x][i].reset(n_per_device[i]);
+	}
+
+	// Need to set up the values here
+#endif
+ }
 }
 
 void OpenCL::run()
 {
 
 }
-

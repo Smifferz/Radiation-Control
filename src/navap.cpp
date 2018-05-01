@@ -152,7 +152,7 @@ void NavAP::NavAPMain()
 	std::cout << "Checking collision..." << std::endl;
       }
       
-      bool ifCollide = collisionCheck->rayOpenCL(collisionCheck->vessel_ray, 1);
+      bool ifCollide = collisionCheck->intersect(collisionCheck->vessel_ray);
 
       isCollision = ifCollide;
       if (ifCollide)
@@ -819,7 +819,7 @@ void NavAP::collisionHandler(RayBox *collisionCheck, v3 nearObjPos)
     // Distance to collision
     double prevDistance;
     double nextDistance;
-    bool ifNewCollide = newRay->rayOpenCL(newRay->vessel_ray, 1);
+    bool ifNewCollide = newRay->intersect(newRay->vessel_ray);
     // If an intersection takes place, determine the collision
     // coordinates
     if (ifNewCollide)
@@ -856,7 +856,7 @@ void NavAP::collisionHandler(RayBox *collisionCheck, v3 nearObjPos)
 
       setupNewRay(newRay, &vessel.currentPosition);
 
-      ifNewCollide = newRay->rayOpenCL(newRay->vessel_ray, 1);
+      ifNewCollide = newRay->intersect(newRay->vessel_ray);
 
       if (!ifNewCollide) {
         std::cout << "collision avoided" << std::endl;
