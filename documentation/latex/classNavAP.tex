@@ -1,0 +1,540 @@
+\hypertarget{classNavAP}{}\section{Nav\+AP Class Reference}
+\label{classNavAP}\index{Nav\+AP@{Nav\+AP}}
+
+
+The class that performs navigation.  
+
+
+
+
+{\ttfamily \#include $<$navap.\+h$>$}
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structNavAP_1_1objectProperties}{object\+Properties}}
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classNavAP_a3720458f3ac3dd07568fc791e6e164bb}\label{classNavAP_a3720458f3ac3dd07568fc791e6e164bb}} 
+{\bfseries Nav\+AP} (int debug)
+\item 
+void \mbox{\hyperlink{classNavAP_a66103064c75286521189e4c4924942db}{init}} ()
+\begin{DoxyCompactList}\small\item\em Initialise vessel variables. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a8cb9617266b590abfc1bcbfc91281b80}{Nav\+A\+P\+Main}} ()
+\begin{DoxyCompactList}\small\item\em Main navigation loop. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classNavAP_a076f2beded7475dc79cdbaed06041b95}\label{classNavAP_a076f2beded7475dc79cdbaed06041b95}} 
+void {\bfseries get\+Active\+Index} (int vessel\+Index)
+\item 
+bool \mbox{\hyperlink{classNavAP_af3df468aafedfd4237c65cf456fed706}{check\+\_\+ping}} ()
+\begin{DoxyCompactList}\small\item\em Check for connection. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classNavAP_aa7a5eb81334c844334e120c12925b11c}\label{classNavAP_aa7a5eb81334c844334e120c12925b11c}} 
+bool {\bfseries is\+Collision}
+\item 
+\mbox{\Hypertarget{classNavAP_aa4392b4d1052738eb39d5ebda4fb9da8}\label{classNavAP_aa4392b4d1052738eb39d5ebda4fb9da8}} 
+double {\bfseries current\+Thrust}
+\item 
+\mbox{\Hypertarget{classNavAP_a1c27aa97a6763a46523e5e7c38b911b2}\label{classNavAP_a1c27aa97a6763a46523e5e7c38b911b2}} 
+double {\bfseries progress\+Thrust}
+\end{DoxyCompactItemize}
+\subsection*{Private Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classNavAP_a08d3e9dd6da93b1b8fdc8e4eb8db25f8}{set\+Nav\+Destination}} (v3 target\+Dest)
+\begin{DoxyCompactList}\small\item\em set navigation destination \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_aa0e617c2a5b253b3eeaead6efc15b0a9}{get\+Current\+Rot\+Vel}} (v3 $\ast$current\+Rot\+Vel)
+\begin{DoxyCompactList}\small\item\em Get current rotational velocity. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a95201f5107ae00ef860127d54db689f1}{set\+Bank\+Speed}} (double value)
+\begin{DoxyCompactList}\small\item\em Set the bank speed. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_ac2b12b7cb72789a30339672b658939c8}{set\+Pitch\+Speed}} (double value)
+\begin{DoxyCompactList}\small\item\em Set the pitch speed. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_acc70dd131f7601bf4b1dff866db44119}{set\+Yaw\+Speed}} (double value)
+\begin{DoxyCompactList}\small\item\em Set the yaw speed. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a57ad1893baffb58fe05f3d6c7113dd7f}{set\+Pitch}} (double pitch)
+\begin{DoxyCompactList}\small\item\em Set pitch. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a7fc8e4aae8a9b3475651637773955b6f}{get\+Pitch}} ()
+\begin{DoxyCompactList}\small\item\em Get current pitch. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_af1fbe1959b0b1b3929021a11181aa782}{set\+Roll}} (double roll)
+\begin{DoxyCompactList}\small\item\em Set roll. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_ab8f7ea8be6de98ec19090322e7920325}{get\+Bank}} ()
+\begin{DoxyCompactList}\small\item\em Get current bank. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a6f935cc2ad075ffa1eaffc8814a2d29e}{set\+Yaw}} (double yaw)
+\begin{DoxyCompactList}\small\item\em Set yaw. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a121eed90683e2fd3b0d55cc0ed707b5e}{get\+Yaw}} ()
+\begin{DoxyCompactList}\small\item\em Get current yaw. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a1d6a18580cbdbb3b9c61a18b4cfee337}{set\+Dir}} (v3 $\ast$dir, bool normal)
+\begin{DoxyCompactList}\small\item\em Set direction. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a1b215919d2892861653411bdfd9c0737}{get\+Distance}} (v3 heading)
+\begin{DoxyCompactList}\small\item\em Get Distance to target. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classNavAP_a4e5947082882a3e8f24097e9bc090e1b}\label{classNavAP_a4e5947082882a3e8f24097e9bc090e1b}} 
+double {\bfseries get\+R\+C\+S\+Thrust\+By\+Delta} (double delta\+Speed)
+\item 
+double \mbox{\hyperlink{classNavAP_abd22bda1a2e7e2b1048caf4c42c1d4b0}{get\+Airspeed\+Angle}} ()
+\begin{DoxyCompactList}\small\item\em Get current airspeed angle. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_ab9ef70ad4fe6f4eaed5e03e421bacdf2}{get\+Heading}} (v3 $\ast$heading, bool normal)
+\begin{DoxyCompactList}\small\item\em Get current heading. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a13408e123d8040a572f03a7b3d363b54}{dot}} (v3 headingA, v3 headingB)
+\begin{DoxyCompactList}\small\item\em Perform dot product. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a5949a1ac7aef3f5f453c2813347eec10}{find\+Angle\+From\+Dot}} (double \mbox{\hyperlink{classNavAP_a13408e123d8040a572f03a7b3d363b54}{dot}})
+\begin{DoxyCompactList}\small\item\em Find angle from dot product. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a642bd070e1487f14e3ced7eea42784b9}{get\+Relative\+Heading\+Angle}} ()
+\begin{DoxyCompactList}\small\item\em Get relative heading. \end{DoxyCompactList}\item 
+double \mbox{\hyperlink{classNavAP_a5b24e0f32a4068c21a3c2c474c1a9ddd}{get\+Component\+Angle}} (double adjacent, double hypotenuse)
+\begin{DoxyCompactList}\small\item\em Get component angle between two lengths. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_ab88867c5e101748bd881f9bd48b03f38}{normalise}} (v3 normal\+Vector, double vector\+Length)
+\begin{DoxyCompactList}\small\item\em Normalise a vector. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_ac1e6cebd415ba734ad897ebdc02b249a}{setup\+New\+Ray}} (Ray\+Box $\ast$new\+Ray, v3 $\ast$current\+Position)
+\begin{DoxyCompactList}\small\item\em Setup a new ray. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a5070e1a7fd9a3a118acf7345a6bcbdd4}{stop\+Thrust}} ()
+\begin{DoxyCompactList}\small\item\em Stop thrusters. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classNavAP_a092a772bdb4058bb4903f1e5d14e8287}{collision\+Handler}} (Ray\+Box $\ast$collision\+Ray, v3 near\+Obj\+Pos)
+\begin{DoxyCompactList}\small\item\em Determine collisions. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Private Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classNavAP_a543f9a397e00003d7d2078a30164396b}\label{classNavAP_a543f9a397e00003d7d2078a30164396b}} 
+int {\bfseries active\+Index}
+\item 
+\mbox{\Hypertarget{classNavAP_a331e32382849be61b0631ec34a3e4835}\label{classNavAP_a331e32382849be61b0631ec34a3e4835}} 
+\mbox{\hyperlink{structNavAP_1_1objectProperties}{object\+Properties}} {\bfseries dest}
+\item 
+\mbox{\Hypertarget{classNavAP_acf2ef1ffc25816724dea759d41280369}\label{classNavAP_acf2ef1ffc25816724dea759d41280369}} 
+\mbox{\hyperlink{structNavAP_1_1objectProperties}{object\+Properties}} {\bfseries vessel}
+\item 
+\mbox{\Hypertarget{classNavAP_a2702d29bc460f21b9340bfc6aed38adb}\label{classNavAP_a2702d29bc460f21b9340bfc6aed38adb}} 
+U\+D\+Pserver $\ast$ {\bfseries server\+Connect}
+\item 
+\mbox{\Hypertarget{classNavAP_a6aefaa52e85814ad53375c36ee6df7c8}\label{classNavAP_a6aefaa52e85814ad53375c36ee6df7c8}} 
+int {\bfseries completed\+R\+C\+S\+Operations}
+\item 
+\mbox{\Hypertarget{classNavAP_affc115a5c9e66d8ad28ec547d407100a}\label{classNavAP_affc115a5c9e66d8ad28ec547d407100a}} 
+double {\bfseries values\+R\+CS} \mbox{[}3\mbox{]}
+\item 
+\mbox{\Hypertarget{classNavAP_a3fff423684267dfc0b4bba9ee0b244b5}\label{classNavAP_a3fff423684267dfc0b4bba9ee0b244b5}} 
+double {\bfseries values\+Delta} \mbox{[}3\mbox{]}
+\item 
+\mbox{\Hypertarget{classNavAP_ad6e6e32cda71397d4f3069a4fbae9a6a}\label{classNavAP_ad6e6e32cda71397d4f3069a4fbae9a6a}} 
+std\+::string {\bfseries operation} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{classNavAP_ac579712d9e7ef22a9b3c35380eb43be0}\label{classNavAP_ac579712d9e7ef22a9b3c35380eb43be0}} 
+std\+::string {\bfseries detail} = \char`\"{}\char`\"{}
+\item 
+\mbox{\Hypertarget{classNavAP_a214ea9a2a0f87c62b8dcfc6d03e3fc09}\label{classNavAP_a214ea9a2a0f87c62b8dcfc6d03e3fc09}} 
+bool {\bfseries is\+Yaw} = false
+\item 
+\mbox{\Hypertarget{classNavAP_a14c1abb661c954b76fd63d17b74839d0}\label{classNavAP_a14c1abb661c954b76fd63d17b74839d0}} 
+bool {\bfseries is\+Pitch} = false
+\item 
+\mbox{\Hypertarget{classNavAP_a6215e05ca03b54e71a0bf0d3806af865}\label{classNavAP_a6215e05ca03b54e71a0bf0d3806af865}} 
+bool {\bfseries on\+Course} = false
+\item 
+\mbox{\Hypertarget{classNavAP_a2953905bfa0e303e2a341d44a81436ec}\label{classNavAP_a2953905bfa0e303e2a341d44a81436ec}} 
+double {\bfseries count\+Iterations} = 0
+\item 
+\mbox{\Hypertarget{classNavAP_ae2d05425971439ba3bb0dc578fd523b2}\label{classNavAP_ae2d05425971439ba3bb0dc578fd523b2}} 
+double {\bfseries obj\+Size} = 0
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The class that performs navigation. 
+
+The \mbox{\hyperlink{classNavAP}{Nav\+AP}} class controls the navigation autopilot for remote navigation 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classNavAP_af3df468aafedfd4237c65cf456fed706}\label{classNavAP_af3df468aafedfd4237c65cf456fed706}} 
+\index{Nav\+AP@{Nav\+AP}!check\+\_\+ping@{check\+\_\+ping}}
+\index{check\+\_\+ping@{check\+\_\+ping}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{check\+\_\+ping()}{check\_ping()}}
+{\footnotesize\ttfamily bool Nav\+A\+P\+::check\+\_\+ping (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Check for connection. 
+
+Initial ping check between client/server to ensure connection can be made \mbox{\Hypertarget{classNavAP_a092a772bdb4058bb4903f1e5d14e8287}\label{classNavAP_a092a772bdb4058bb4903f1e5d14e8287}} 
+\index{Nav\+AP@{Nav\+AP}!collision\+Handler@{collision\+Handler}}
+\index{collision\+Handler@{collision\+Handler}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{collision\+Handler()}{collisionHandler()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::collision\+Handler (\begin{DoxyParamCaption}\item[{Ray\+Box $\ast$}]{collision\+Check,  }\item[{v3}]{near\+Obj\+Pos }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Determine collisions. 
+
+Collision handler to handle possible incoming collisions 
+\begin{DoxyParams}{Parameters}
+{\em $\ast$collision\+Check} & Pointer to Ray\+Box object \\
+\hline
+{\em near\+Obj\+Pos} & Position vector of nearby object \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a13408e123d8040a572f03a7b3d363b54}\label{classNavAP_a13408e123d8040a572f03a7b3d363b54}} 
+\index{Nav\+AP@{Nav\+AP}!dot@{dot}}
+\index{dot@{dot}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{dot()}{dot()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::dot (\begin{DoxyParamCaption}\item[{v3}]{headingA,  }\item[{v3}]{headingB }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Perform dot product. 
+
+Perform the dot product on the input vectors and return the result 
+\begin{DoxyParams}{Parameters}
+{\em headingA} & First input heading \\
+\hline
+{\em headingB} & Second input heading \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The dot product of the two headings 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_a5949a1ac7aef3f5f453c2813347eec10}\label{classNavAP_a5949a1ac7aef3f5f453c2813347eec10}} 
+\index{Nav\+AP@{Nav\+AP}!find\+Angle\+From\+Dot@{find\+Angle\+From\+Dot}}
+\index{find\+Angle\+From\+Dot@{find\+Angle\+From\+Dot}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{find\+Angle\+From\+Dot()}{findAngleFromDot()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::find\+Angle\+From\+Dot (\begin{DoxyParamCaption}\item[{double}]{dot }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Find angle from dot product. 
+
+Find the angle from the dot product of two vectors 
+\begin{DoxyParams}{Parameters}
+{\em dot} & Output of dot product \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Angle from dot product 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_abd22bda1a2e7e2b1048caf4c42c1d4b0}\label{classNavAP_abd22bda1a2e7e2b1048caf4c42c1d4b0}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Airspeed\+Angle@{get\+Airspeed\+Angle}}
+\index{get\+Airspeed\+Angle@{get\+Airspeed\+Angle}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Airspeed\+Angle()}{getAirspeedAngle()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Airspeed\+Angle (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get current airspeed angle. 
+
+Get the airspeed angle using oapi\+Get\+Airspeed\+Vector \begin{DoxyReturn}{Returns}
+angle in radians 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_ab8f7ea8be6de98ec19090322e7920325}\label{classNavAP_ab8f7ea8be6de98ec19090322e7920325}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Bank@{get\+Bank}}
+\index{get\+Bank@{get\+Bank}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Bank()}{getBank()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Bank (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get current bank. 
+
+Get the current bank of vessel \begin{DoxyReturn}{Returns}
+Current bank of vessel 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_a5b24e0f32a4068c21a3c2c474c1a9ddd}\label{classNavAP_a5b24e0f32a4068c21a3c2c474c1a9ddd}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Component\+Angle@{get\+Component\+Angle}}
+\index{get\+Component\+Angle@{get\+Component\+Angle}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Component\+Angle()}{getComponentAngle()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Component\+Angle (\begin{DoxyParamCaption}\item[{double}]{adjacent,  }\item[{double}]{hypotenuse }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get component angle between two lengths. 
+
+Get the component angle between incident vector lengths 
+\begin{DoxyParams}{Parameters}
+{\em adjacent} & Adjacent length \\
+\hline
+{\em hypotenuse} & Longest length \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The component angle to input lengths 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_aa0e617c2a5b253b3eeaead6efc15b0a9}\label{classNavAP_aa0e617c2a5b253b3eeaead6efc15b0a9}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Current\+Rot\+Vel@{get\+Current\+Rot\+Vel}}
+\index{get\+Current\+Rot\+Vel@{get\+Current\+Rot\+Vel}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Current\+Rot\+Vel()}{getCurrentRotVel()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::get\+Current\+Rot\+Vel (\begin{DoxyParamCaption}\item[{v3 $\ast$}]{current\+Rot\+Vel }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get current rotational velocity. 
+
+Get the current rotational velocity of vessel 
+\begin{DoxyParams}{Parameters}
+{\em $\ast$current\+Rot\+Vel} & Pointer to the v3 variable to store the result \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a1b215919d2892861653411bdfd9c0737}\label{classNavAP_a1b215919d2892861653411bdfd9c0737}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Distance@{get\+Distance}}
+\index{get\+Distance@{get\+Distance}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Distance()}{getDistance()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Distance (\begin{DoxyParamCaption}\item[{v3}]{heading }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get Distance to target. 
+
+Get the distance from the vessel to the target position 
+\begin{DoxyParams}{Parameters}
+{\em heading} & Current heading of vessel \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The distance along the heading to target 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_ab9ef70ad4fe6f4eaed5e03e421bacdf2}\label{classNavAP_ab9ef70ad4fe6f4eaed5e03e421bacdf2}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Heading@{get\+Heading}}
+\index{get\+Heading@{get\+Heading}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Heading()}{getHeading()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::get\+Heading (\begin{DoxyParamCaption}\item[{v3 $\ast$}]{heading,  }\item[{bool}]{normal }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get current heading. 
+
+Get the current heading of vessel 
+\begin{DoxyParams}{Parameters}
+{\em $\ast$heading} & Pointer to heading vector to write to \\
+\hline
+{\em normal} & Specify if normalized heading is required \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a7fc8e4aae8a9b3475651637773955b6f}\label{classNavAP_a7fc8e4aae8a9b3475651637773955b6f}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Pitch@{get\+Pitch}}
+\index{get\+Pitch@{get\+Pitch}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Pitch()}{getPitch()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Pitch (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get current pitch. 
+
+Get the current pitch of vessel \begin{DoxyReturn}{Returns}
+Current pitch of vessel 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_a642bd070e1487f14e3ced7eea42784b9}\label{classNavAP_a642bd070e1487f14e3ced7eea42784b9}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Relative\+Heading\+Angle@{get\+Relative\+Heading\+Angle}}
+\index{get\+Relative\+Heading\+Angle@{get\+Relative\+Heading\+Angle}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Relative\+Heading\+Angle()}{getRelativeHeadingAngle()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Relative\+Heading\+Angle (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get relative heading. 
+
+Get the relative heading between vessel and destination \begin{DoxyReturn}{Returns}
+Relative heading angle 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_a121eed90683e2fd3b0d55cc0ed707b5e}\label{classNavAP_a121eed90683e2fd3b0d55cc0ed707b5e}} 
+\index{Nav\+AP@{Nav\+AP}!get\+Yaw@{get\+Yaw}}
+\index{get\+Yaw@{get\+Yaw}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{get\+Yaw()}{getYaw()}}
+{\footnotesize\ttfamily double Nav\+A\+P\+::get\+Yaw (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Get current yaw. 
+
+Get the current yaw of vessel \begin{DoxyReturn}{Returns}
+Current yaw of vessel 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classNavAP_a66103064c75286521189e4c4924942db}\label{classNavAP_a66103064c75286521189e4c4924942db}} 
+\index{Nav\+AP@{Nav\+AP}!init@{init}}
+\index{init@{init}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{init()}{init()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::init (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Initialise vessel variables. 
+
+Initialise the variables of the vessels present in the simulation \mbox{\Hypertarget{classNavAP_a8cb9617266b590abfc1bcbfc91281b80}\label{classNavAP_a8cb9617266b590abfc1bcbfc91281b80}} 
+\index{Nav\+AP@{Nav\+AP}!Nav\+A\+P\+Main@{Nav\+A\+P\+Main}}
+\index{Nav\+A\+P\+Main@{Nav\+A\+P\+Main}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{Nav\+A\+P\+Main()}{NavAPMain()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::\+Nav\+A\+P\+Main (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Main navigation loop. 
+
+Main loop to perform navigation techniques and call appropriate functions \mbox{\Hypertarget{classNavAP_ab88867c5e101748bd881f9bd48b03f38}\label{classNavAP_ab88867c5e101748bd881f9bd48b03f38}} 
+\index{Nav\+AP@{Nav\+AP}!normalise@{normalise}}
+\index{normalise@{normalise}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{normalise()}{normalise()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::normalise (\begin{DoxyParamCaption}\item[{v3}]{normal\+Vector,  }\item[{double}]{vector\+Length }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Normalise a vector. 
+
+Perform normalisation to a vector 
+\begin{DoxyParams}{Parameters}
+{\em normal\+Vector} & Pointer to vector to normalise \\
+\hline
+{\em vector\+Length} & Length of input vector \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a95201f5107ae00ef860127d54db689f1}\label{classNavAP_a95201f5107ae00ef860127d54db689f1}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Bank\+Speed@{set\+Bank\+Speed}}
+\index{set\+Bank\+Speed@{set\+Bank\+Speed}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Bank\+Speed()}{setBankSpeed()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Bank\+Speed (\begin{DoxyParamCaption}\item[{double}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set the bank speed. 
+
+Set the bank speed using the angular velocity of the vessel to set the thrusters in a given direction 
+\begin{DoxyParams}{Parameters}
+{\em value} & Bank velocity \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a1d6a18580cbdbb3b9c61a18b4cfee337}\label{classNavAP_a1d6a18580cbdbb3b9c61a18b4cfee337}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Dir@{set\+Dir}}
+\index{set\+Dir@{set\+Dir}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Dir()}{setDir()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Dir (\begin{DoxyParamCaption}\item[{v3 $\ast$}]{dir,  }\item[{bool}]{normal }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set direction. 
+
+Set the direction of the vessel 
+\begin{DoxyParams}{Parameters}
+{\em $\ast$dir} & Pointer to direction vector to write to \\
+\hline
+{\em normal} & Specify if normalized direction is required \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a08d3e9dd6da93b1b8fdc8e4eb8db25f8}\label{classNavAP_a08d3e9dd6da93b1b8fdc8e4eb8db25f8}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Nav\+Destination@{set\+Nav\+Destination}}
+\index{set\+Nav\+Destination@{set\+Nav\+Destination}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Nav\+Destination()}{setNavDestination()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Nav\+Destination (\begin{DoxyParamCaption}\item[{v3}]{target\+Dest }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+set navigation destination 
+
+Store an input coordinate vector into the destination vector 
+\begin{DoxyParams}{Parameters}
+{\em target\+Dest} & v3 representation of destination coordinates \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a57ad1893baffb58fe05f3d6c7113dd7f}\label{classNavAP_a57ad1893baffb58fe05f3d6c7113dd7f}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Pitch@{set\+Pitch}}
+\index{set\+Pitch@{set\+Pitch}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Pitch()}{setPitch()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Pitch (\begin{DoxyParamCaption}\item[{double}]{pitch }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set pitch. 
+
+Set pitch of vessel relative to previous pitch 
+\begin{DoxyParams}{Parameters}
+{\em pitch} & Pitch to set \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_ac2b12b7cb72789a30339672b658939c8}\label{classNavAP_ac2b12b7cb72789a30339672b658939c8}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Pitch\+Speed@{set\+Pitch\+Speed}}
+\index{set\+Pitch\+Speed@{set\+Pitch\+Speed}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Pitch\+Speed()}{setPitchSpeed()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Pitch\+Speed (\begin{DoxyParamCaption}\item[{double}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set the pitch speed. 
+
+Set the pitch speed using the angular velocity of the vessel to set the thrusters in a given direction 
+\begin{DoxyParams}{Parameters}
+{\em value} & Pitch velocity \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_af1fbe1959b0b1b3929021a11181aa782}\label{classNavAP_af1fbe1959b0b1b3929021a11181aa782}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Roll@{set\+Roll}}
+\index{set\+Roll@{set\+Roll}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Roll()}{setRoll()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Roll (\begin{DoxyParamCaption}\item[{double}]{roll }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set roll. 
+
+Set roll of vessel relative to previous bank 
+\begin{DoxyParams}{Parameters}
+{\em roll} & Roll to set \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_ac1e6cebd415ba734ad897ebdc02b249a}\label{classNavAP_ac1e6cebd415ba734ad897ebdc02b249a}} 
+\index{Nav\+AP@{Nav\+AP}!setup\+New\+Ray@{setup\+New\+Ray}}
+\index{setup\+New\+Ray@{setup\+New\+Ray}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{setup\+New\+Ray()}{setupNewRay()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::setup\+New\+Ray (\begin{DoxyParamCaption}\item[{Ray\+Box $\ast$}]{ray,  }\item[{v3 $\ast$}]{current\+Position }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Setup a new ray. 
+
+Perform the setup for a new ray collision calculation 
+\begin{DoxyParams}{Parameters}
+{\em $\ast$ray} & Pointer to Ray\+Box object \\
+\hline
+{\em $\ast$current\+Position} & Pointer to position vector to write to \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a6f935cc2ad075ffa1eaffc8814a2d29e}\label{classNavAP_a6f935cc2ad075ffa1eaffc8814a2d29e}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Yaw@{set\+Yaw}}
+\index{set\+Yaw@{set\+Yaw}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Yaw()}{setYaw()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Yaw (\begin{DoxyParamCaption}\item[{double}]{yaw }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set yaw. 
+
+Set yaw of vessel relative to previous yaw 
+\begin{DoxyParams}{Parameters}
+{\em yaw} & Yaw to set \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_acc70dd131f7601bf4b1dff866db44119}\label{classNavAP_acc70dd131f7601bf4b1dff866db44119}} 
+\index{Nav\+AP@{Nav\+AP}!set\+Yaw\+Speed@{set\+Yaw\+Speed}}
+\index{set\+Yaw\+Speed@{set\+Yaw\+Speed}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{set\+Yaw\+Speed()}{setYawSpeed()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::set\+Yaw\+Speed (\begin{DoxyParamCaption}\item[{double}]{value }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Set the yaw speed. 
+
+Set the yaw speed using the angular velocity of the vessel $\ast$to set the thrusters in a given direction 
+\begin{DoxyParams}{Parameters}
+{\em value} & Yaw velocity \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classNavAP_a5070e1a7fd9a3a118acf7345a6bcbdd4}\label{classNavAP_a5070e1a7fd9a3a118acf7345a6bcbdd4}} 
+\index{Nav\+AP@{Nav\+AP}!stop\+Thrust@{stop\+Thrust}}
+\index{stop\+Thrust@{stop\+Thrust}!Nav\+AP@{Nav\+AP}}
+\subsubsection{\texorpdfstring{stop\+Thrust()}{stopThrust()}}
+{\footnotesize\ttfamily void Nav\+A\+P\+::stop\+Thrust (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [private]}}
+
+
+
+Stop thrusters. 
+
+Stop the thrusters of the vessel 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/inc/navap.\+h\item 
+src/navap.\+cpp\end{DoxyCompactItemize}
