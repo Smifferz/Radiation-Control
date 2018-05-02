@@ -21,7 +21,7 @@
 class NavAP
 {
 public:
-  NavAP(int debug);
+  NavAP(std::string ip, int debug, std::string file);
   void init();
   void NavAPMain();
   void getActiveIndex(int vesselIndex);
@@ -69,6 +69,7 @@ private:
   double valuesDelta[3];
   std::string operation = "";
   std::string detail = "";
+  std::string cl_file = "";
   bool isYaw = false;
   bool isPitch = false;
   bool onCourse = false;

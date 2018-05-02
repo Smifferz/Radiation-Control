@@ -15,22 +15,46 @@
 // will be passed to the program as an argument
 UDPserver::UDPserver(std::string server_addr, int debug_tmp)
 {
-  serverlen = sizeof(server);
-  port = PORT;
-  sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-  if (sockfd < 0)
-    error("ERROR: Could not create SOCKET connection");
+#ifdef _WIN32
+    WSADATA wsaData;
+    WSAStartup(MAKEWORD(2, 2), &wsaData);
+#endif
+    serverlen = sizeof(server);
+    port = PORT;
+#ifdef _WIN32
+    socketS = socket(AF_INET, SOCK_DGRAM, 0);
+    if (socketS < 0) {
+        error("ERROR: Could not create SOCKET connection");
+    }
+#else
+    sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (sockfd < 0) {
+        error("ERROR: Could not create SOCKET connection");
+    }
+#endif
   //serv_addr = server_addr.c_str();
   //printf("The address is %s\n", server_addr);
   std::cout << "The address is " << server_addr << std::endl;
   memset(&server, 0, serverlen);
   server.sin_family = AF_INET;
   server.sin_port = htons(port);
+#ifdef _WIN32
+  server.sin_addr.s_addr = INADDR_ANY;
+#else
   server.sin_addr.s_addr = htonl(INADDR_ANY);
+#endif
 
   //std::cout << "The char version of the address is " << serv_addr << std::endl;
-  if (bind(sockfd, (struct sockaddr *) &server, sizeof(server)) < 0)
-    error("ERROR: Could not bind");
+#ifdef _WIN32
+  /*if (bind(socketS, (sockaddr*)&server, sizeof(server))) {
+      error("ERROR: Could not bind");
+  }*/
+  bind(socketS, (sockaddr*)&server, sizeof(server));
+#else
+  if (bind(sockfd, (struct sockaddr *) &server, sizeof(server)) < 0) {
+      error("ERROR: Could not bind");
+  }
+#endif
   debug = debug_tmp;
   cli_len = sizeof(struct sockaddr);
 }
@@ -38,7 +62,11 @@ UDPserver::UDPserver(std::string server_addr, int debug_tmp)
 bool UDPserver::check_ping()
 {
   int ping;
-  ping = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#ifdef _WIN32
+  ping = recvfrom(socketS, buffer, BUFLEN - 1, 0, (sockaddr*)&cli_addr, &cli_len);
+#else
+  ping = recvfrom(sockfd, buffer, BUFLEN - 1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#endif
   if (ping < 0) error("ERROR reading from client");
   std::cout << "Received " << buffer << ", now returning ping..." << std::endl;
   if (debug) {
@@ -50,28 +78,6 @@ bool UDPserver::check_ping()
   return true;
 }
 
-// Spawn a seperate data process for every connection
-// made to the UDP server
-void UDPserver::spawn_data_process(const char *data)
-{
-  listen(sockfd, 5);
-  cli_len = sizeof(cli_addr);
-  newsocket = sockfd;
-  while(1) {
-    pid = fork();
-    if (pid < 0)
-      error("ERROR on fork");
-    if (pid == 0) {
-      //xperform_transfer(sockfd, data);
-      exit(0);
-    }
-    else
-      close(newsocket);
-    sleep(1);
-  }
-}
-
-
 // for every connection made. It handles the communication
 // once a connection has been established.
 void UDPserver::transfer_data(std::string operation, std::string detail)
@@ -79,8 +85,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail)
   int n;
   cli_len = sizeof(cli_addr);
 
-  // By default zero the buffer
-  bzero(buffer, BUFLEN);
   memset(&buffer, 0, sizeof(buffer));
 
   // If the size of the data is greater than zero,
@@ -96,13 +100,21 @@ void UDPserver::transfer_data(std::string operation, std::string detail)
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
+#ifdef _WIN32
+  n = sendto(socketS, buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#else
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#endif
   if (n < 0) error("ERROR writing to socket");
 
   // zero the buffer again
-  bzero(buffer, BUFLEN);
+  memset(buffer, 0, BUFLEN);
   // Read the contents of the message into the buffer
-  n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#ifdef _WIN32
+  n = recvfrom(socketS, buffer, BUFLEN - 1, 0, (sockaddr*)&cli_addr, &cli_len);
+#else
+  n = recvfrom(sockfd, buffer, BUFLEN - 1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#endif
 }
 
 
@@ -116,8 +128,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail, int *re
   int n;
   cli_len = sizeof(cli_addr);
 
-  // By default zero the buffer
-  bzero(buffer, BUFLEN);
   memset(&buffer, 0, sizeof(buffer));
 
   // If the size of the data is greater than zero,
@@ -133,13 +143,21 @@ void UDPserver::transfer_data(std::string operation, std::string detail, int *re
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
+#ifdef _WIN32
+  n = sendto(socketS, buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#else
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#endif
   if (n < 0) error("ERROR writing to socket");
 
   // zero the buffer again
-  bzero(buffer, BUFLEN);
+  memset(buffer, 0, BUFLEN);
   // Read the contents of the message into the buffer
-  n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#ifdef _WIN32
+  n = recvfrom(socketS, buffer, BUFLEN - 1, 0, (sockaddr*)&cli_addr, &cli_len);
+#else
+  n = recvfrom(sockfd, buffer, BUFLEN - 1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#endif
   if (n < 0) error("ERROR reading from socket");
   if (debug)
     printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
@@ -155,8 +173,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail, double 
   int n;
   cli_len = sizeof(cli_addr);
 
-  // By default zero the buffer
-  bzero(buffer, BUFLEN);
   memset(&buffer, 0, sizeof(buffer));
 
   // If the size of the data is greater than zero,
@@ -172,13 +188,21 @@ void UDPserver::transfer_data(std::string operation, std::string detail, double 
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
+#ifdef _WIN32
+  n = sendto(socketS, buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#else
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#endif
   if (n < 0) error("ERROR writing to socket");
 
   // zero the buffer again
-  bzero(buffer, BUFLEN);
+  memset(buffer, 0, BUFLEN);
   // Read the contents of the message into the buffer
-  n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#ifdef _WIN32
+  n = recvfrom(socketS, buffer, BUFLEN - 1, 0, (sockaddr*)&cli_addr, &cli_len);
+#else
+  n = recvfrom(sockfd, buffer, BUFLEN - 1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#endif
   if (n < 0) error("ERROR reading from socket");
   if (debug)
     printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);
@@ -197,8 +221,7 @@ void UDPserver::transfer_data(std::string operation, std::string detail, v3 *res
   int n;
   cli_len = sizeof(cli_addr);
 
-  // By default zero the buffer
-  bzero(buffer, BUFLEN);
+  // zero the buffer
   memset(&buffer, 0, sizeof(buffer));
 
   // If the size of the data is greater than zero,
@@ -215,15 +238,23 @@ void UDPserver::transfer_data(std::string operation, std::string detail, v3 *res
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
+#ifdef _WIN32
+  n = sendto(socketS, buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#else
   n = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#endif
   if (n < 0) error("ERROR writing to socket");
 
   // Expect three responses from the client
   for (int i = 0; i < 3; i++) {
     // zero the buffer again
-    bzero(buffer, BUFLEN);
+    memset(buffer, 0, BUFLEN);
     // Read the contents of the message into the buffer
-    n = recvfrom(sockfd, buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#ifdef _WIN32
+    n = recvfrom(socketS, buffer, BUFLEN - 1, 0, (sockaddr*)&cli_addr, &cli_len);
+#else
+    n = recvfrom(sockfd, buffer, BUFLEN - 1, 0, (struct sockaddr *)&cli_addr, &cli_len);
+#endif
     if (n < 0) error("ERROR reading from socket");
     if (debug)
       printf("Received packet from %s:%d\nData: %s\n\n", inet_ntoa(cli_addr.sin_addr), ntohs(cli_addr.sin_port), buffer);

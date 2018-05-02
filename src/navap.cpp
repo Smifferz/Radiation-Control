@@ -20,10 +20,11 @@
 
 #define PI 3.1415
 
-NavAP::NavAP(int debug)
+NavAP::NavAP(std::string ip, int debug, std::string file)
 {
-  serverConnect = new UDPserver("169.254.87.118", debug);
+  serverConnect = new UDPserver(ip, debug);
   debugID = debug;
+  cl_file = file;
 }
 
 /**
@@ -287,14 +288,30 @@ void NavAP::NavAPMain()
       printf("On course, performing minor adjustments\n");
       getCurrentRotVel(&currentRotVel);
       setPitchSpeed(currentRotVel.x);
+#ifdef _WIN32
+      Sleep(20);
+#else
       usleep(1000 * 20);
+#endif
       setYawSpeed(-currentRotVel.y);
-      usleep(1000*200);
+#ifdef _WIN32
+      Sleep(20);
+#else
+      usleep(1000 * 20);
+#endif
       stopThrust();
       setPitchSpeed(currentRotVel.x);
-      usleep(1000*20);
+#ifdef _WIN32
+      Sleep(20);
+#else
+      usleep(1000 * 20);
+#endif
       setYawSpeed(currentRotVel.y);
-      usleep(1000*200);
+#ifdef _WIN32
+      Sleep(200);
+#else
+      usleep(1000 * 200);
+#endif
     }
   }
 }

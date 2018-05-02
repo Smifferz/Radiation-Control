@@ -72,7 +72,7 @@ char* parallel_read_file_null(const char* path) {
     char* f, *f_tmp;
     long length;
     f_tmp = parallel_read_file(path, &length);
-    std::cout << "f_tmp: " << f_tmp << std::cout;
+    std::cout << "f_tmp: " << f_tmp << std::endl;
     f = new char[length+1];
     *f = *f_tmp;
     delete []f_tmp;

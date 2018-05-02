@@ -280,8 +280,24 @@ bool RayBox::intersectOpenCL(Ray ray1, int debug)
     
 
     // run the kernel
-    cl::KernelFunctor ray_intersect(cl::Kernel(program, "ray_intersect"), queue, cl::NullRange, cl::NDRange(3), cl::NullRange);
-    ray_intersect(buffer_origin_data, buffer_direction, buffer_box_centre, buffer_box_width, buffer_collision_data, buffer_impact, buffer_inside);
+    // The commented out code is OpenCL 1.1
+    //cl::KernelFunctor ray_intersect(cl::Kernel(program, "ray_intersect"), queue, cl::NullRange, cl::NDRange(3), cl::NullRange);
+    //ray_intersect(buffer_origin_data, buffer_direction, buffer_box_centre, buffer_box_width, buffer_collision_data, buffer_impact, buffer_inside);
+
+    /*auto ray_intersect = cl::make_kernel<cl::Buffer&, cl::Buffer&, cl::Buffer&, cl::Buffer&, cl::Buffer&, cl::Buffer&, cl::Buffer&>(program, "ray_intersect");
+    cl::EnqueueArgs eargs(queue, cl::NullRange, cl::NDRange(3), cl::NullRange);
+    ray_intersect(eargs, buffer_origin_data, buffer_direction, buffer_box_centre, buffer_box_width, buffer_collision_data, buffer_impact, buffer_inside);
+*/
+    cl::Kernel kernel_intersect = cl::Kernel(program, "ray_intersect");
+    kernel_intersect.setArg(0, buffer_origin_data);
+    kernel_intersect.setArg(1, buffer_direction);
+    kernel_intersect.setArg(2, buffer_box_centre);
+    kernel_intersect.setArg(3, buffer_box_width);
+    kernel_intersect.setArg(4, buffer_collision_data);
+    kernel_intersect.setArg(5, buffer_impact);
+    kernel_intersect.setArg(6, buffer_inside);
+    queue.enqueueNDRangeKernel(kernel_intersect, cl::NullRange, cl::NDRange(3), cl::NullRange);
+    queue.finish();
 
     char inside;
     // read results from the device

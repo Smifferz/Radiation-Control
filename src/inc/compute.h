@@ -1,5 +1,5 @@
-#ifndef OPENCL_H
-#define OPENCL_H
+#ifndef COMPUTE_H
+#define COMPUTE_H
 
 #include <vector>
 #include "AOCLUtils/aocl_utils.h"
@@ -18,10 +18,10 @@ extern cl_program program;
 extern cl_context context;       
 
 
-class OpenCL
+class Compute
 {
  public:
-  OpenCL(unsigned num_items);
+  Compute(unsigned num_items);
   bool init_opencl();
   void init_problem();
   void run();
