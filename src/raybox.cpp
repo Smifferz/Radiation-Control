@@ -9,8 +9,9 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include "aclutil.h"
+#include "compute.h"
 
-#include <CL/cl.hpp>
 #define BIN_PATH __FILE__ ".bin.tmp"
 
 // Fast Ray-Box Intersection
@@ -24,6 +25,57 @@
 // emitted from the vessel and determines if that ray would collide
 // with the box around the target object.
 // ==============================================================
+
+// ACL runtime configuration
+static cl_platform_id platform;
+static cl_device_id device;
+static cl_context context;
+static cl_command_queue queue;
+static cl_kernel kernel;
+static cl_program program;
+static cl_int status;
+
+static cl_mem kernel_dum;
+static cl_mem kernel_input;
+static cl_mem kernel_index;
+static cl_mem kernel_output;
+
+int dum_size;
+
+static void freeResources()
+{
+    if (kernel) {
+        clReleaseKernel(kernel);
+    }
+    if (program) {
+        clReleaseProgram(program);
+    }
+    if (queue) {
+        clReleaseCommandQueue(queue);
+    }
+    if (context) {
+        clReleaseContext(context);
+    }
+    if (kernel_dum) {
+        clReleaseMemObject(kernel_dum);
+    }
+    if (kernel_input) {
+        clReleaseMemObject(kernel_input);
+    }
+    if (kernel_index) {
+        clReleaseMemObject(kernel_index);
+    }
+    if (kernel_output) {
+        clReleaseMemObject(kernel_output);
+    }
+}
+
+static void dumpError(const char* str, cl_int status)
+{
+    printf("%s\n", str);
+    printf("Error code: %d\n", status);
+    freeResources();
+}
 
 // Creates a box around the target object
 RayBox::RayBox(v3 centrePos, double radius)
@@ -111,6 +163,59 @@ bool RayBox::intersect(Ray ray1)
   collisionCoord = hitCoord;
   isCoordFound = true;
   return isCoordFound;
+}
+
+bool RayBox::clRun(Ray ray)
+{
+    Compute* cl_init = new Compute();
+    int init = cl_init->init_opencl();
+    if (init) {
+        std::cout << "WARNING: Could not initialize OpenCL. Running default detector." << std::endl;
+        return intersect(ray);
+    }
+    platform = cl_init->getPlatform();
+    device = cl_init->getDevice();
+    context = cl_init->getContext();
+    queue = cl_init->getQueue();
+    cl_int kernel_status;
+    cl_int status;
+    const char* kernel_name = "ray_intersect";
+
+    // create the kernel
+    unsigned char* aocx; size_t aocx_len = 0;
+    aocx = load_file("ray_intersect.aocx", &aocx_len);
+    if (aocx == NULL) {
+        printf("ERROR: Failed to find ray_intersect.aocx...Running default collision detector\n");
+        intersect(ray);
+    }
+
+    cl_program program = clCreateProgramWithBinary(context, 1, &device, &aocx_len, (const unsigned char**)&aocx, &kernel_status, &status);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clCreateProgramWithBinary.", status);
+        printf("Running default collision detector\n");
+        return intersect(ray);
+    }
+
+    // build the program
+    status = clBuildProgram(program, 0, NULL, "", NULL, NULL);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clBuildProgram", status);
+        printf("Running default collision detector\n");
+        return intersect(ray);
+    }
+
+    free(aocx);
+
+    // create the kernel
+    kernel = clCreateKernel(program, kernel_name, &status);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clCreateKernel", status);
+        printf("Running default collision detector\n");
+        return intersect(ray);
+    }
+
+    printf("Created Kernel %s ...\n", kernel_name);
+    return true;
 }
 
 int RayBox::rayOpenCL(Ray ray1, int debug)

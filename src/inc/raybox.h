@@ -2,6 +2,7 @@
 #define RAYBOX_H
 
 #include "types.h"
+#include <CL/cl.hpp>
 
 #define NUMDIM 3	// number of dimensions
 #define BOUNDARY_RIGHT	0
@@ -32,6 +33,7 @@ public:
 	bool intersect(Ray ray1);
 	bool intersectOpenCL(Ray ray1, int debug);
 	int rayOpenCL(Ray ray1, int debug);
+    bool clRun(Ray ray);
 	void findCollisionCoord(Ray ray1, v3 impactCoord);
 	void getCollisionCoord(v3 impactCoord);
 

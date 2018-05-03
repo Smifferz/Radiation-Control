@@ -2,157 +2,121 @@
 #include "compute.h"
 #include "cleanup.h"
 
-Compute::Compute(unsigned num_items)
+
+bool g_enable_notifications = true;       // set to false to temporarily disable printing of error notification callbacks
+void oclNotify(const char* errinfo, const void* private_info, size_t cb, void* user_data)
 {
-  N = num_items;
+    if (g_enable_notifications) {
+        std::cout << "  OPENCL Notification Callback: " << errinfo << std::endl;
+    }
+}
+
+cl_platform_id Compute::platform;
+cl_device_id Compute::device;
+cl_context Compute::context;
+cl_command_queue Compute::queue;
+cl_int Compute::status;
+
+
+Compute::~Compute()
+{
+    freeResources();
+}
+
+void Compute::dumpError(const char* str, cl_int status) 
+{
+    std::cout << str << " Error code: " << status << std::endl;
+}
+
+void Compute::dumpInitError()
+{
+    std::cout << "Failed to initialize the device. Please check the following" << std::endl;
+    std::cout << "\t1. The card is visible to your host operating system" << std::endl;
+    std::cout << "\t2. There is a valid OpenCL design currently configured on the card" << std::endl;
+    std::cout << "\t3. You've installed all necessary drivers" << std::endl;
+    std::cout << "\t4. You've linked the host program with the correct libraries for your specific card" << std::endl;
+}
+
+void Compute::freeResources()
+{
+    if (queue) {
+        clReleaseCommandQueue(queue);
+    }
+    if (context) {
+        clReleaseContext(context);
+    }
 }
 
 // Initializes the OpenCL objects
-bool Compute::init_opencl()
+int Compute::init_opencl()
 {
-//  cl_int status;
-//
-//  std::cout << "Initializing OpenCL\n" << std::endl;
-//
-//  if (!setCwdToExeDir()) {
-//    return false;
-//  }
-//
-//  // Get the OpenCL platform.
-//  platform = findPlatform("Intel(R) FPGA SDK for OpenCL(TM)");
-//  if(platform == NULL) {
-//    printf("ERROR: Unable to find Intel(R) FPGA OpenCL platform.\n");
-//    return false;
-//  }
-//  
-//  // Query the available OpenCL device
-//  device.reset(getDevices(platform, CL_DEVICE_TYPE_ALL, &num_devices));
-//  std::cout << "Platform:" << getPlatformName(platform).c_str() << std::endl;
-//  std::cout << "Using " << num_devices << "device(s)" << std::endl;
-//  for(unsigned i = 0; i < num_devices; ++i) {
-//    std::cout << " " << getDeviceName(device[i]).c_str() << std::endl;
-//  }
-//
-//  // Create the context
-//  context = clCreateContext(NULL, num_devices, device, &oclContextCallback, NULL, &status);
-//  checkError(status, "Failed to create context");
-//
-//  // Create a program for all device(s). Use the first device as the type
-//  // representative device (assuming all device(s) are of the same type).
-//  std::string binary_file = getBoardBinaryFile("rayintersect", device[0]);
-//  std::cout << "Using AOCX: " << binary_file.c_str() << std::endl;
-//  program = createProgramFromBinary(context, binary_file.c_str(), device, num_devices);
-//
-//  // Build the program that was just created
-//  status = clBuildProgram(program, 0, NULL, "", NULL, NULL);
-//  checkError(status, "Failed to build program");
-//
-//  // Create per-device objects
-//  queue.reset(num_devices);
-//  kernel.reset(num_devices);
-//  n_per_device.reset(num_devices);
-//
-//  for(unsigned i = 0; i < num_devices; ++i) {
-//    // Command queue
-//    queue[i] = clCreateCommandQueue(context, device[i], CL_QUEUE_PROFILING_ENABLE, &status);
-//    checkError(status, "Failed to create command queue");
-//
-//    // Kernel
-//    const char* kernel_name = "rayintersect";
-//    kernel[i] = clCreateKernel(program, kernel_name, &status);
-//    checkError(status, "Failed to create kernel");
-//
-//    // Determine the number of elements processed by this device
-//    n_per_device[i] = N / num_devices; // number of elements handled by this device
-//
-//    // Spead out the remainder of the elements over the first
-//    // N % num_devices
-//    if (i < (N % num_devices)) {
-//      n_per_device[i]++;
-//    }
-//
-//#if USE_SVM_API == 0
-//    // Input buffers
-//    // get the number of input buffers
-//    unsigned num_inputs = input_bufs.size();
-//    for(unsigned x = 0; x < num_inputs; x++) {
-//      input_bufs[x][i] = clCreateBuffer(context, CL_MEM_READ_ONLY,
-//				    n_per_device[i] * sizeof(float), NULL, &status);
-//      std::string error_msg = "Failed to create buffer for input" + std::to_string(i);
-//      checkError(status, error_msg.c_str());
-//    }
-//
-//    // Output buffers
-//    // Get the number of output buffers
-//    unsigned num_outputs = output_bufs.size();
-//    for(unsigned x = 0; x < num_outputs; x++) {
-//      output_bufs[x][i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY,
-//				      n_per_device[i] * sizeof(float), NULL, &status);
-//      std::string error_msg = "Failed to create buffer for output" + std::to_string(i);
-//      checkError(status, error_msg.c_str());
-//    }
-//#else
-//    cl_device_svm_capabilities caps = 0;
-//
-//    status = clGetDeviceInfo(
-//			     device[i],
-//			     CL_DEVICE_SVM_CAPABILITIES,
-//			     sizeof(cl_device_svm_capabilities),
-//			     &caps,
-//			     0
-//			     );
-//    checkError(status, "Failed to get device info");
-//
-//    if (!(caps & CL_DEVICE_SVM_COARSE_GRAIN_BUFFER)) {
-//      std::cout << "The host was compiled with USE_SVM_API, however the device currently being targeted does not support SVM." << std::endl;
-//      // Free the resources allocated
-//      cleanup();
-//      return false;
-//    }
-//#endif  /* USE_SVM_API == 0 */
-//  }
+    cl_uint num_platforms;
+    cl_uint num_devices;
 
-  return true;
+    // don't buffer stdout
+    setbuf(stdout, NULL);
+
+    // get the platform ID
+    status = clGetPlatformIDs(1, &platform, &num_platforms);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clGetPlatformIDs.", status);
+        dumpInitError();
+        freeResources();
+        return 1;
+    }
+    if (num_platforms != 1) {
+        printf("Found %d platforms", num_platforms);
+        dumpInitError();
+        freeResources();
+        return 1;
+    }
+
+    // get the Device ID
+    status = clGetDeviceIDs(platform, CL_DEVICE_TYPE_ALL, 1, &device, &num_devices);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clGetDeviceIDs.", status);
+        dumpInitError();
+        freeResources();
+        return 1;
+    }
+    if (num_devices != 1) {
+        printf("WARNING: Found %d OpenCL devics, using first device.", num_devices);
+    }
+
+    // create a context
+    context = clCreateContext(0, 1, &device, &oclNotify, NULL, &status);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clCreateContext", status);
+        freeResources();
+        return 1;
+    }
+
+    // create a command queue
+    queue = clCreateCommandQueue(context, device, CL_QUEUE_PROFILING_ENABLE, &status);
+    if (status != CL_SUCCESS) {
+        dumpError("Failed clCreateCommandQueue", status);
+        freeResources();
+        return 1;
+    }
+    return 0;
 }
 
-
-// Initialize the data for the problem. Requires num_devices to be known
-void Compute::init_problem()
+cl_platform_id Compute::getPlatform()
 {
-  if(num_devices == 0) {
-    checkError(-1, "No devices");
-  }
-  
-  // get number of inputs
-  unsigned num_inputs = inputs.size();
-  for (unsigned i = 0; i < num_inputs; i++) {
-	  inputs[i].reset(num_devices);
-  }
- // get number of outputs
- unsigned num_outputs = outputs.size();
- for (unsigned i = 0; i < num_outputs; i++) {
-	 outputs[i].reset(num_devices);
- }
-
- // Generate inputs vectors and the reference output consisting of 
- // a total of N elements.
- // We create seperate arrays for each device dso that each device 
- // has an aligned buffer.
- for (unsigned i = 0; i < num_devices; ++i) {
-#if USE_SVM_API == 0
-	for(unsigned x = 0; x < num_inputs; x++) {
-		inputs[x][i].reset(n_per_device[i]);
-	}
-	for (unsigned x = 0; x < num_outputs; x++) {
-		outputs[x][i].reset(n_per_device[i]);
-	}
-
-	// Need to set up the values here
-#endif
- }
+    return platform;
 }
 
-void Compute::run()
+cl_device_id Compute::getDevice()
 {
+    return device;
+}
 
+cl_context Compute::getContext()
+{
+    return context;
+}
+
+cl_command_queue Compute::getQueue()
+{
+    return queue;
 }

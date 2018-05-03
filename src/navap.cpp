@@ -152,8 +152,7 @@ void NavAP::NavAPMain()
       if (debugID) {
 	std::cout << "Checking collision..." << std::endl;
       }
-      
-      bool ifCollide = collisionCheck->intersect(collisionCheck->vessel_ray);
+      bool ifCollide = collisionCheck->clRun(collisionCheck->vessel_ray);
 
       isCollision = ifCollide;
       if (ifCollide)
