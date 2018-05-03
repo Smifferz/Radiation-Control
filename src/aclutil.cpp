@@ -15,18 +15,8 @@
 
 #define ACL_ALIGNMENT 64
 
-#ifdef LINUX
-#include <stdlib.h>
-void* acl_aligned_malloc (size_t size) {
-    void *result = NULL;
-      posix_memalign (&result, ACL_ALIGNMENT, size);
-        return result;
-}
-void acl_aligned_free (void *ptr) {
-    free (ptr);
-}
 
-#else // WINDOWS
+#ifdef _WIN32 // WINDOWS
 #include <malloc.h>
 
 void* acl_aligned_malloc (size_t size) {
@@ -34,6 +24,16 @@ void* acl_aligned_malloc (size_t size) {
 }
 void acl_aligned_free (void *ptr) {
     _aligned_free (ptr);
+}
+#else
+#include <stdlib.h>
+void* acl_aligned_malloc(size_t size) {
+    void *result = NULL;
+    posix_memalign(&result, ACL_ALIGNMENT, size);
+    return result;
+}
+void acl_aligned_free(void *ptr) {
+    free(ptr);
 }
 
 #endif // LINUX

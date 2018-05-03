@@ -73,8 +73,12 @@ bool UDPserver::check_ping()
     std::cout << "The address of the client is " << inet_ntoa(cli_addr.sin_addr) << std::endl;
     std::cout << "The length of the client " << cli_len << std::endl;
   }
-  //ping = sendto(sockfd, &buffer, BUFLEN-1, 0, (struct sockaddr *)&cli_addr, cli_len));
-  //if (ping < 0) error("ERROR writing to client");
+#ifdef _WIN32
+  ping = sendto(socketS, buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#else
+  ping = sendto(sockfd, &buffer, sizeof(buffer), 0, (struct sockaddr *)&cli_addr, cli_len);
+#endif
+  if (ping < 0) error("ERROR writing to client");
   return true;
 }
 
