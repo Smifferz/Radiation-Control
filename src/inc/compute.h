@@ -5,6 +5,7 @@
 #include <functional>
 #include "aclutil.h"
 #include "CL/cl.hpp"
+#include "stdio.h"
 
 //using namespace aocl_utils;
 using namespace std::placeholders;
@@ -38,10 +39,13 @@ class Compute
 template<class T>
 int Compute::transferToDevice(T* src, int n, cl_mem* mem)
 {
+	printf("Transferring buffer to device...\n");
     if (*mem) {
         clReleaseMemObject(*mem);
     }
 
+
+	printf("Creating input buffer...\n");
     // create the input buffer
     *mem = clCreateBuffer(context, CL_MEM_READ_ONLY, sizeof(src), NULL, &status);
     if (status != CL_SUCCESS) {
@@ -49,6 +53,7 @@ int Compute::transferToDevice(T* src, int n, cl_mem* mem)
         return 1;
     }
 
+	printf("Writing input buffer...\n");
     // write the input
     status = clEnqueueWriteBuffer(queue, *mem, CL_TRUE, 0, sizeof(src), (void*)src, 0, NULL, NULL);
     if (status != CL_SUCCESS) {

@@ -234,25 +234,32 @@ bool RayBox::clRun(Ray ray)
     printf("Created Kernel %s ...\n", kernel_name);
 
     // setup inputs to device
-    int transferStatus = cl_init->transferToDevice(&ray.origin.data, n, &kernel_inputs[0]);
+	cl_mem tmpInput;
+    int transferStatus = cl_init->transferToDevice(&ray.origin.data, n, &tmpInput);
+	printf("Exited first input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
-    cl_mem tmpInput;
+    kernel_inputs.push_back(tmpInput);
     transferStatus = cl_init->transferToDevice(&ray.direction.data, n, &tmpInput);
+	printf("Exited second input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
     kernel_inputs.push_back(tmpInput);
+	clReleaseMemObject(tmpInput);
     transferStatus = cl_init->transferToDevice(&box1.centre.data, n, &tmpInput);
+	printf("Exited third input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
     kernel_inputs.push_back(tmpInput);
+	clReleaseMemObject(tmpInput);
     transferStatus = cl_init->transferToDevice(&box1.width, 1, &tmpInput);
+	printf("Exited fourth input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
@@ -265,21 +272,21 @@ bool RayBox::clRun(Ray ray)
             clReleaseMemObject(kernel_outputs[i]);
         }
     }
-    kernel_outputs[0] = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double) * n, NULL, &status);
+    kernel_outputs.push_back(clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double) * n, NULL, &status));
     if (status != CL_SUCCESS) {
-        dumpError("Failed clCreateError for output.", status);
+        dumpError("Failed clCreateBuffer for output.", status);
         printf("Running default collision detector\n");
         return intersect(ray);
     }
     kernel_outputs.push_back(clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double), NULL, &status));
     if (status != CL_SUCCESS) {
-        dumpError("Failed clCreateError for output.", status);
+        dumpError("Failed clCreateBuffer for output.", status);
         printf("Running default collision detector\n");
         return intersect(ray);
     }
     kernel_outputs.push_back(clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double), NULL, &status));
     if (status != CL_SUCCESS) {
-        dumpError("Failed clCreateError for output.", status);
+        dumpError("Failed clCreateBuffer for output.", status);
         printf("Running default collision detector\n");
         return intersect(ray);
     }

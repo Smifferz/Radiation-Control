@@ -14,8 +14,7 @@
 # include <Windows.h>
 # include <stdio.h>
 # include <tchar.h>
-# endif
-# ifdef linux
+# else
 # include<stdio.h>
 # include<arpa/inet.h>
 # include<unistd.h>
