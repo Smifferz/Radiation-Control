@@ -100,7 +100,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail)
   if (debug) {
     printf("Requesting data from client....\n");
     printf("Socket = %d\n", sockfd);
-    printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
@@ -142,8 +141,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail, int *re
   // Request the data transaction from the client
   if (debug) {
     printf("Requesting data from client....\n");
-    printf("Socket = %d\n", sockfd);
-    printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
@@ -187,8 +184,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail, double 
   // Request the data transaction from the client
   if (debug) {
     printf("Requesting data from client....\n");
-    printf("Socket = %d\n", sockfd);
-    printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }
@@ -237,8 +232,6 @@ void UDPserver::transfer_data(std::string operation, std::string detail, v3 *res
   //printf("Requesting data from client....\n");
   if (debug) {
     printf("Requesting data from client....\n");
-    printf("Socket = %d\n", sockfd);
-    printf("cli_addr.sin_addr.s_addr = %d\n", cli_addr.sin_addr.s_addr);
     printf("Attempting to write to socket...\n");
     std::cout << "Writing data value : " << buffer << " to client" << std::endl;
   }

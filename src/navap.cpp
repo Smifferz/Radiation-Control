@@ -17,6 +17,7 @@
 #include <math.h>
 #include <cmath>
 #include <iostream>
+#include <chrono>
 
 #define PI 3.1415
 
@@ -150,10 +151,13 @@ void NavAP::NavAPMain()
 
       // Check if there is a collision object on the current path
       if (debugID) {
-	std::cout << "Checking collision..." << std::endl;
+		std::cout << "Checking collision..." << std::endl;
       }
-      bool ifCollide = collisionCheck->clRun(collisionCheck->vessel_ray);
-
+	  std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
+	bool ifCollide = collisionCheck->intersect(collisionCheck->vessel_ray);
+		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
+		auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+		std::cout << "Intersect function took: " << duration << " nanoseconds" << std::endl;
       isCollision = ifCollide;
       if (ifCollide)
       {
@@ -769,9 +773,7 @@ void NavAP::collisionHandler(RayBox *collisionCheck, v3 nearObjPos)
   }
   double collisionDistance = getDistance(collisionVector);
   std::cout  << "Distance to collision is : " << collisionDistance << std::endl;
-  if (collisionDistance > 1000000000) {
-    return;
-  }
+  
   // Finding the coordinate for a point on the associated edge of
   // a collision object based on the mean radius can be performed
   // via rearranging the equation for finding the distance between

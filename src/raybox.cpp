@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <chrono>
 #include "aclutil.h"
 #include "compute.h"
 
@@ -26,8 +27,6 @@
 // with the box around the target object.
 // ==============================================================
 
-static size_t workSize;
-static size_t globalSize;   // must be evenly divisible by workSize
 
 // ACL runtime configuration
 static cl_platform_id platform;
@@ -40,8 +39,9 @@ static cl_int status;
 
 static cl_mem kernel_dum;
 static std::vector<cl_mem> kernel_inputs;
-static std::vector<cl_mem> kernel_index;
-static std::vector<cl_mem> kernel_outputs;
+static cl_mem output_1;
+static cl_mem output_2;
+static cl_mem output_3;
 
 int dum_size;
 
@@ -62,21 +62,20 @@ static void freeResources()
     if (kernel_dum) {
         clReleaseMemObject(kernel_dum);
     }
-    for (int i = 0; i < sizeof(kernel_inputs); i++) {
+    for (int i = 0; i < kernel_inputs.size(); i++) {
         if (kernel_inputs[i]) {
             clReleaseMemObject(kernel_inputs[i]);
         }
     }
-    for (int i = 0; i < sizeof(kernel_index); i++) {
-        if (kernel_index[i]) {
-            clReleaseMemObject(kernel_index[i]);
-        }
-    }
-    for (int i = 0; i < sizeof(kernel_outputs); i++) {
-        if (kernel_outputs[i]) {
-            clReleaseMemObject(kernel_outputs[i]);
-        }
-    }
+	if (output_1) {
+		clReleaseMemObject(output_1);
+	}
+	if (output_2) {
+		clReleaseMemObject(output_2);
+	}
+	if (output_3) {
+		clReleaseMemObject(output_3);
+	}
 }
 
 static void dumpError(const char* str, cl_int status)
@@ -177,12 +176,13 @@ bool RayBox::intersect(Ray ray1)
 bool RayBox::clRun(Ray ray)
 {
     int n = 3;
-#ifdef ALTERA_CL
-    globalSize = workSize = (n < 256) ? n : (n / 256) * 256;
-#else
-    workSize = (n < 256) ? n : 256;
-    globalSize = (n / 256) * 256;
-#endif
+//#ifdef ALTERA_CL
+  //  globalSize = workSize = (n < 256) ? n : (n / 256) * 256;
+//#else
+ //   workSize = (n < 256) ? n : 256;
+ //   globalSize = (n / 256) * 256;
+//#endif
+	size_t globalSize[3] = {1, 1, 1};
     Compute* cl_init = new Compute();
     int init = cl_init->init_opencl();
     if (init) {
@@ -236,14 +236,12 @@ bool RayBox::clRun(Ray ray)
     // setup inputs to device
 	cl_mem tmpInput;
     int transferStatus = cl_init->transferToDevice(&ray.origin.data, n, &tmpInput);
-	printf("Exited first input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
     kernel_inputs.push_back(tmpInput);
     transferStatus = cl_init->transferToDevice(&ray.direction.data, n, &tmpInput);
-	printf("Exited second input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
@@ -251,7 +249,6 @@ bool RayBox::clRun(Ray ray)
     kernel_inputs.push_back(tmpInput);
 	clReleaseMemObject(tmpInput);
     transferStatus = cl_init->transferToDevice(&box1.centre.data, n, &tmpInput);
-	printf("Exited third input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
@@ -259,32 +256,25 @@ bool RayBox::clRun(Ray ray)
     kernel_inputs.push_back(tmpInput);
 	clReleaseMemObject(tmpInput);
     transferStatus = cl_init->transferToDevice(&box1.width, 1, &tmpInput);
-	printf("Exited fourth input buffer\n");
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
     kernel_inputs.push_back(tmpInput);
 
-    // setup outputs from device
-    for (int i = 0; i < sizeof(kernel_outputs); i++) {
-        if (kernel_outputs[i]) {
-            clReleaseMemObject(kernel_outputs[i]);
-        }
-    }
-    kernel_outputs.push_back(clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double) * n, NULL, &status));
+    output_1 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double) * n, NULL, &status);
     if (status != CL_SUCCESS) {
         dumpError("Failed clCreateBuffer for output.", status);
         printf("Running default collision detector\n");
         return intersect(ray);
     }
-    kernel_outputs.push_back(clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double), NULL, &status));
+    output_2 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double), NULL, &status);
     if (status != CL_SUCCESS) {
         dumpError("Failed clCreateBuffer for output.", status);
         printf("Running default collision detector\n");
         return intersect(ray);
     }
-    kernel_outputs.push_back(clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double), NULL, &status));
+    output_3 = clCreateBuffer(context, CL_MEM_READ_WRITE, sizeof(double), NULL, &status);
     if (status != CL_SUCCESS) {
         dumpError("Failed clCreateBuffer for output.", status);
         printf("Running default collision detector\n");
@@ -296,9 +286,9 @@ bool RayBox::clRun(Ray ray)
     status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&kernel_inputs[1]);
     status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&kernel_inputs[2]);
     status |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&kernel_inputs[3]);
-    status |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&kernel_outputs[0]);
-    status |= clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&kernel_outputs[1]);
-    status |= clSetKernelArg(kernel, 6, sizeof(cl_mem), (void*)&kernel_outputs[2]);
+    status |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&output_1);
+    status |= clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&output_2);
+    status |= clSetKernelArg(kernel, 6, sizeof(cl_mem), (void*)&output_3);
     if (status != CL_SUCCESS) {
         dumpError("Failed Set args", status);
         printf("Running default collision detector\n");
@@ -306,9 +296,9 @@ bool RayBox::clRun(Ray ray)
     }
 
     cl_event evt = NULL;
-
+	std::chrono::high_resolution_clock::time_point t1 = std::chrono::high_resolution_clock::now();
     // launch kernel
-    status = clEnqueueNDRangeKernel(queue, kernel, 1, NULL, &globalSize, &workSize, 0, NULL, &evt);
+    status = clEnqueueNDRangeKernel(queue, kernel, n, NULL, globalSize, NULL, 0, NULL, &evt);
     if (status != CL_SUCCESS) {
         dumpError("Failed to launch kernel", status);
         printf("Running default collision detector\n");
@@ -317,20 +307,22 @@ bool RayBox::clRun(Ray ray)
 
     // wait for kernel to complete
     clFinish(queue);
-    
+	std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();                              
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>( t2 - t1 ).count();
+	std::cout << "Time taken to perform OpenCL compute: " << duration << " nanoseconds" << std::endl;	
     char inside;
     // read the results
-    transferStatus = cl_init->transferFromDevice(&collisionCoord.data, n, &kernel_outputs[0]);
+    transferStatus = cl_init->transferFromDevice(&collisionCoord.data, n, &output_1);
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
-    transferStatus = cl_init->transferFromDevice(&isCoordFound, 1, &kernel_outputs[1]);
+    transferStatus = cl_init->transferFromDevice(&isCoordFound, 1, &output_2);
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);
     }
-    transferStatus = cl_init->transferFromDevice(&inside, n, &kernel_outputs[2]);
+    transferStatus = cl_init->transferFromDevice(&inside, n, &output_3);
     if (transferStatus) {
         printf("Running default collision detector\n");
         return intersect(ray);

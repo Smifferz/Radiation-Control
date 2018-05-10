@@ -9,6 +9,10 @@
 #define BOUNDARY_LEFT	1
 #define MIDDLE	2
 
+/**                                                                                                           
+ * The RayBox class performs collision detection using Ray Box Intersection techniques                                    
+ * @brief The class that performs collision detection                                                                  
+ */
 class RayBox
 {
 private:
