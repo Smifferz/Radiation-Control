@@ -21,6 +21,11 @@
 
 #define PI 3.1415
 
+/**
+ * Constructor for the NavAP class. Receives the program arguments
+ * and copies them to private members
+ * @brief Setups the members for the NavAP class
+ */
 NavAP::NavAP(std::string ip, int debug, std::string file)
 {
   serverConnect = new UDPserver(ip, debug);

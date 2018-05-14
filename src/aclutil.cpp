@@ -19,26 +19,52 @@
 #ifdef _WIN32 // WINDOWS
 #include <malloc.h>
 
+/**
+ * Ensure memory is aligned on an Altera specified boundary
+ * @brief Ensure consistent memory alignment
+ * @param size Size of variable to allocate
+ */
 void* acl_aligned_malloc (size_t size) {
     return _aligned_malloc (size, ACL_ALIGNMENT);
 }
+/**
+ * Free memory aligned to an Altera specified boundary
+ * @brief Free Alterea specified memory
+ * @param ptr Refrence to memory area
+ */
 void acl_aligned_free (void *ptr) {
     _aligned_free (ptr);
 }
 #else
 #include <stdlib.h>
+/**
+ * Ensure memory is aligned on an Altera specified boundary
+ * @brief Ensure consistent memory alignment
+ * @param size Size of variable to allocate
+ */
 void* acl_aligned_malloc(size_t size) {
     void *result = NULL;
     posix_memalign(&result, ACL_ALIGNMENT, size);
     return result;
 }
+/**
+ * Free memory aligned to an Altera specified boundary
+ * @brief Free Alterea specified memory
+ * @param ptr Refrence to memory area
+ */
 void acl_aligned_free(void *ptr) {
     free(ptr);
 }
 
 #endif // LINUX
 
-
+/**
+ * Load an AOCX binary file into memory
+ * @brief Load AOCX file
+ * @param filename C-like string filename representation
+ * @param size_ret Reference to size of file
+ * @return result Pointer to memory allocated for file
+ */
 unsigned char* load_file(const char* filename,size_t*size_ret)
 {
    FILE* fp;

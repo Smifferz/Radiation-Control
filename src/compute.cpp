@@ -4,6 +4,11 @@
 
 
 bool g_enable_notifications = true;       // set to false to temporarily disable printing of error notification callbacks
+
+/** 
+ * OpenCL notification callback 
+ * @brief OpenCL notification callback
+ */
 void oclNotify(const char* errinfo, const void* private_info, size_t cb, void* user_data)
 {
     if (g_enable_notifications) {
@@ -18,16 +23,30 @@ cl_command_queue Compute::queue;
 cl_int Compute::status;
 
 
+/**
+ * Constructor for Compute, frees any OpenCL resources
+ * @brief Constructor for Compute
+ */
 Compute::~Compute()
 {
     freeResources();
 }
 
+/**
+ * Print an OpenCL error along with its error code
+ * @brief Print OpenCL error
+ * @param str C-like char pointer containing error mesage
+ * @param status OpenCL error code
+ */
 void Compute::dumpError(const char* str, cl_int status) 
 {
     std::cout << str << " Error code: " << status << std::endl;
 }
 
+/**
+ * Dump error on initialisation failure
+ * @brief Dump initialisation error
+ */
 void Compute::dumpInitError()
 {
     std::cout << "Failed to initialize the device. Please check the following" << std::endl;
@@ -37,6 +56,10 @@ void Compute::dumpInitError()
     std::cout << "\t4. You've linked the host program with the correct libraries for your specific card" << std::endl;
 }
 
+/**
+ * Free any active OpenCL resources
+ * @brief Free OpenCl resources
+ */
 void Compute::freeResources()
 {
     if (queue) {
@@ -47,7 +70,10 @@ void Compute::freeResources()
     }
 }
 
-// Initializes the OpenCL objects
+/**
+ * Initialises the OpenCL objects
+ * @brief Initialise OpenCL objects
+ */
 int Compute::init_opencl()
 {
     cl_uint num_platforms;
@@ -101,21 +127,43 @@ int Compute::init_opencl()
     return 0;
 }
 
+/**
+ * Get the current OpenCL platform
+ * @brief Get OpenCL platform
+ * @return platform Currently used OpenCL platform
+ */
 cl_platform_id Compute::getPlatform()
 {
     return platform;
 }
 
+/**
+ * Get the current OpenCL device
+ * @brief Get OpenCL device
+ * @return device Current OpenCL device
+ */
 cl_device_id Compute::getDevice()
 {
     return device;
 }
 
+
+/**
+ * Get the current OpenCL context
+ * @brief Get OpenCL context
+ * @return context Current OpenCL context
+ */
 cl_context Compute::getContext()
 {
     return context;
 }
 
+
+/**
+ * Get the current OpenCL command queue
+ * @brief Get OpenCL queue
+ * @return queue Current OpenCL command queue
+ */
 cl_command_queue Compute::getQueue()
 {
     return queue;

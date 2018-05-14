@@ -45,6 +45,10 @@ static cl_mem output_3;
 
 int dum_size;
 
+/** 
+ * Free the OpenCL resources if they are instantiated
+ * @brief Free any OpenCL resources
+ */
 static void freeResources()
 {
     if (kernel) {
@@ -78,6 +82,12 @@ static void freeResources()
 	}
 }
 
+/**
+ * Perform a dump of any OpenCL error code
+ * @brief Dump OpenCL errors
+ * @param *str C-like char pointeer containing error
+ * @param status OpenCL error code
+ */
 static void dumpError(const char* str, cl_int status)
 {
     printf("%s\n", str);
@@ -85,7 +95,12 @@ static void dumpError(const char* str, cl_int status)
     freeResources();
 }
 
-// Creates a box around the target object
+/**
+ * Create a box around the target object related to its centre position and radius
+ * @briefCreate a box around target object
+ * @param centrePos v3 representation of centre position of object
+ * @param radius radius of target object
+ */
 RayBox::RayBox(v3 centrePos, double radius)
 {
   // Setup geometry for bounding box
@@ -94,14 +109,22 @@ RayBox::RayBox(v3 centrePos, double radius)
   box1.height = radius * 2;
 }
 
+/**
+ * Destructor for RayBox class
+ * @brief Destructor for RayBox class
+ */
 RayBox::~RayBox()
 {
   // reset the coordinate found check to false
-  // so subsequent calls
+  // so subsequent calls are set false
   isCoordFound = false;
 }
-
-// Determine if the ray is going to intersect with the bounding box
+/**
+ * Determine if the ray is going to intersect with the bounding box on its path
+ * @brief Check for ray collision
+ * @param ray1 Ray struct
+ * @return isCoordFound Boolean result of intersection determination 
+ */
 bool RayBox::intersect(Ray ray1)
 {
   v3 hitCoord;
@@ -173,6 +196,12 @@ bool RayBox::intersect(Ray ray1)
   return isCoordFound;
 }
 
+/**
+ * OpenCL implementation of intersect using AOCL binaries
+ * @brief AOCL binary OpenCL
+ * @param ray Ray struct 
+ * @return isCoordFound Boolean value of intersection determination
+ */
 bool RayBox::clRun(Ray ray)
 {
     int n = 3;
@@ -340,6 +369,13 @@ bool RayBox::clRun(Ray ray)
     return isCoordFound;
 }
 
+/**
+ * OpenCL implementation of intersection using the custom OpenCL interface wrapper
+ * @brief Custom OpenCL interface wrapper implementation of intersect
+ * @param ray1 Ray struct 
+ * @param debug Debug mode specifier
+ * @return EXIT_SUCCESS Returns success if complete
+ */
 int RayBox::rayOpenCL(Ray ray1, int debug)
 {
   Parallel parallel;
@@ -404,7 +440,13 @@ int RayBox::rayOpenCL(Ray ray1, int debug)
   return EXIT_SUCCESS;
 }
 
-
+/**
+ * OpenCL implementation of intersect using OpenCL 2.2 standards
+ * @brief OpenCL 2.2 standard intersect
+ * @param ray1 Ray struct
+ * @param debug Debug mode specifier
+ * @return isCoordFound Boolean value for intersection determination
+ */
 bool RayBox::intersectOpenCL(Ray ray1, int debug)
 {
   cl_int err = CL_SUCCESS;
@@ -552,10 +594,13 @@ bool RayBox::intersectOpenCL(Ray ray1, int debug)
 
   return isCoordFound;
 }
-// Once we know there is a collision on the path, we can calculate
-// the predicted collision coordinate and adjust the orientation
-// of the vessel to move in the appropriate direction away from
-// the obstacle.
+
+/**
+ * Find the exact collision coordinate of the ray
+ * @brief Finds collision coordinate
+ * @param ray1 Ray struct
+ * @param impactCoord v3 to contain the collision coordinate
+ */
 void RayBox::findCollisionCoord(Ray ray1, v3 impactCoord)
 {
   getCollisionCoord(impactCoord);
@@ -610,8 +655,12 @@ void RayBox::findCollisionCoord(Ray ray1, v3 impactCoord)
   impactCoord = collisionCoord;
 }
 
-// Sets the impactCoord 3D vector to be equal to the collision
-// coordinate if the collision coordinate has been found
+/**
+ * Sets the passed 3D vector to be equal to the collision
+ * coordinate if the collision coordinate has been found
+ * @brief Gets the collision coordinate
+ * @param impactCoord v3 to store the result in
+ */
 void RayBox::getCollisionCoord(v3 impactCoord)
 {
   if (!isCoordFound)

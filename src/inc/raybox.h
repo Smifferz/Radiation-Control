@@ -10,17 +10,23 @@
 #define MIDDLE	2
 
 /**                                                                                                           
- * The RayBox class performs collision detection using Ray Box Intersection techniques                                    
- * @brief The class that performs collision detection                                                                  
+ * The RayBox class performs collision detection using Ray Box Intersection techniques                             
+ * @brief The class that performs collision detection                                                             
  */
 class RayBox
 {
 private:
+	/**
+	 * @brief Properties of bounding box
+	 */
 	struct Box {
 		v3 centre;
 		double width;
 		double height;
 	} box1;	// Bounding box around target object
+	/**
+	 * @brief Properties of Axis-Aligned bounding box
+	 */
 	struct AABB {
 		v3 leftBot;	// Minimal coordinates
 		v3 rightTop;	// Maximal corner
@@ -30,6 +36,9 @@ private:
 public:
 	RayBox(v3 centrePos, double radius);
 	~RayBox();
+	/**
+	 * @brief Properties of ray
+	 */
 	struct Ray {
 		v3 direction;
 		v3 origin;
@@ -37,7 +46,7 @@ public:
 	bool intersect(Ray ray1);
 	bool intersectOpenCL(Ray ray1, int debug);
 	int rayOpenCL(Ray ray1, int debug);
-    bool clRun(Ray ray);
+    	bool clRun(Ray ray);
 	void findCollisionCoord(Ray ray1, v3 impactCoord);
 	void getCollisionCoord(v3 impactCoord);
 

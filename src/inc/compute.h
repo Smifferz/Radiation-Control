@@ -10,6 +10,10 @@
 //using namespace aocl_utils;
 using namespace std::placeholders;
 
+/**
+ * Compute class containing all OpenCL relevant members and performs initialisation
+ * @brief Provides OpenCL members and initialisation 
+ */
 class Compute
 {
  public:
@@ -35,7 +39,14 @@ class Compute
     static void freeResources();
 };
 
-
+/**
+ * metafunction for transferring a source of any generic type to an OpenCL input buffer
+ * @brief Transfer standard type to OpenCL input buffer
+ * @param src Reference to input source 
+ * @param n size of input source
+ * @param mem Reference to OpenCL memory object
+ * @tparam T Type of source
+ */
 template<class T>
 int Compute::transferToDevice(T* src, int n, cl_mem* mem)
 {
@@ -58,6 +69,14 @@ int Compute::transferToDevice(T* src, int n, cl_mem* mem)
     }
     return 0;
 }
+/**
+ * metafunction for transferring from an OpenCL output buffer to any generic type
+ * @brief Transfer OpenCL output buffer to any type
+ * @param dst Reference to output source 
+ * @param n size of input source
+ * @param mem Reference to OpenCL memory object
+ * @tparam T Type of source
+ */
 template<class T>
 int Compute::transferFromDevice(T* dst, int n, cl_mem* mem)
 {

@@ -43,7 +43,6 @@ private:
   double getYaw();
   void setDir(v3 *dir, bool normal);
   double getDistance(v3 heading);
-  double getRCSThrustByDelta(double deltaSpeed);
   double getAirspeedAngle();
   void getHeading(v3 *heading, bool normal);
   double dot(v3 headingA, v3 headingB);
@@ -55,6 +54,9 @@ private:
   void stopThrust();
   void collisionHandler(RayBox *collisionRay, v3 nearObjPos);
   int activeIndex;
+  /**
+   * @brief Properties of target object
+   */
   struct objectProperties {
     v3 direction;
     v3 currentPosition;
